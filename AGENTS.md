@@ -21,7 +21,17 @@ npx expo-doctor             # diagnose dependency and config issues
 npx expo install --fix      # fix incompatible package versions
 ```
 
-Run lint and typecheck before declaring any task done.
+Run `npm test` and `npm run typecheck` before declaring any task done. `npx expo lint` is not configured.
+
+## Organice
+
+- The product rules are in `docs/organice-prd.md`. Do not rewrite that file unless asked.
+- Tabs come from `expo-router/js-tabs`. The `Tabs` export on `expo-router` is deprecated in SDK 57. Do not use `expo-router/unstable-native-tabs`.
+- Domain modules and `src/db` import each other with a `.ts` extension so `node --experimental-strip-types --test` can resolve them. `allowImportingTsExtensions` is set because typecheck is `noEmit`. Do not add `"type": "module"` to `package.json`.
+- `execAsync` is for migrations only. User text is always a bound parameter. Full-text search must go through `ftsQuery`, which quotes each token.
+- On SDK 57 the legacy calendar `*Async` methods and the legacy file-system `copyAsync` throw. Use the current calendar methods and `File.copy`.
+- `expo-calendar` is not in Expo Go. A development build is required. Do not claim a phone check that was not run.
+- Hermes has no `globalThis.crypto`. `newId` must not call `crypto.randomUUID()` unless that function exists.
 
 ## Navigation & Routing
 

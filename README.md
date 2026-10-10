@@ -1,26 +1,81 @@
-# Organice
+<p align="center">
+  <img src="assets/images/icon.png" alt="Organice logo" width="160">
+</p>
 
-Organice is your day planner. It lives on your phone and nowhere else. Tasks, ideas, habits, a focus timer, and your calendar stay in one file on the device. There is no account and no server.
+<h1 align="center">Organice</h1>
+
+<p align="center">
+  A day planner that lives on your phone.
+</p>
+
+<p align="center">
+  <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-111111"></a>
+  <img alt="Android" src="https://img.shields.io/badge/platform-Android-111111">
+  <img alt="iOS" src="https://img.shields.io/badge/platform-iOS-111111">
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/dashboard.png" alt="Dashboard" width="190">
+  <img src="docs/screenshots/todo.png" alt="To-do" width="190">
+  <img src="docs/screenshots/tasks.png" alt="Tasks and lists" width="190">
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/ideas.png" alt="Ideas" width="190">
+  <img src="docs/screenshots/calendar.png" alt="Calendar" width="190">
+</p>
+
+Organice keeps tasks, ideas, habits, a focus timer, and your calendar in one file on the device. There is no account and no server.
 
 If a Google account is already on the phone, its events show up here. Organice reads the calendar the phone already has. It does not sign in to Google, and it does not keep a Google token.
 
 ## 📲 Install
 
-You need this project on the computer and the phone plugged in with USB debugging on.
+You need Node.js with npm, a JDK (Java Development Kit) 17 or newer, and Android Studio with Android SDK Platform 36. Plug the phone in and turn on USB debugging. `adb devices` should list the phone with the word `device` beside it.
+
+This repository uses npm. The lockfile is `package-lock.json`.
 
 ```bash
 npm install
 npm run android
 ```
 
-`npm install` downloads what the app needs. `npm run android` builds Organice and installs it on the attached phone. Open Organice from the phone after that. Later launches can use the same command.
+`npm install` downloads the libraries pinned by the lockfile. `npm run android` compiles a development build and installs it on the attached phone. A development build is your own copy of Organice, with its native modules included. Open Organice from the phone after the command finishes.
 
-To check the rules without the phone:
+Expo Go will not run this app. Expo Go is a sandbox, and it does not include the phone calendar module Organice uses. Use the two commands above.
+
+On a Mac with Xcode installed:
+
+```bash
+npm run ios
+```
+
+## 🧪 Test
+
+These two commands do not need a phone.
 
 ```bash
 npm test
 npm run typecheck
 ```
+
+`npm test` runs the data rules. `npm run typecheck` checks the TypeScript types. It does not write output files.
+
+## 📦 Compile
+
+A release build packs the app into a file you can install without a development server.
+
+Android:
+
+```bash
+npx expo run:android --variant release
+```
+
+The APK (Android Package, the file Android installs) is written under `android/app/build/outputs/apk/release/`. The `android` folder is generated when you compile. You do not create that folder by hand.
+
+The current Android APK is also attached to [the GitHub release](https://github.com/CyBaiSecurity/Organice/releases/latest).
+
+An iOS build needs a Mac and Xcode. `npm run ios` is the command on that Mac. This repository's release file is the Android APK.
 
 ## 🧭 Usage
 
@@ -111,7 +166,7 @@ Low is green. Medium and high have their own colors. A finished task is struck t
 - White noise: Silence, Rain, Café, or Wind.
 - Link the session to an open task, an active habit, or neither.
 - **Start focus**, **Stop** on a count-up, and **Abandon**. Starting another session asks before it abandons the one that is running.
-- A countdown rolls into the break on its own. The next focus wait for you to tap Start.
+- A countdown rolls into the break on its own. The next focus waits until you tap Start.
 - The dashboard shows today's finished focus time when nothing is running.
 
 ### 🔁 Habits
@@ -136,3 +191,9 @@ Low is green. Medium and high have their own colors. A finished task is struck t
 - **Export database**. The file is a copy of your data, and it is not encrypted. Keep it private.
 
 Your tasks, ideas, habits, and focus history are in `organice.db` on the phone. Uninstalling the app, or losing the phone without an export, loses that file.
+
+## 📄 License
+
+Organice is released under the [MIT license](LICENSE).
+
+The original create-expo-app template is also MIT licensed, by 650 Industries, Inc.
