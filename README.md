@@ -73,7 +73,9 @@ npx expo run:android --variant release
 
 The APK (Android Package, the file Android installs) is written under `android/app/build/outputs/apk/release/`. The `android` folder is generated when you compile. You do not create that folder by hand.
 
-The current Android APK is also attached to [the GitHub release](https://github.com/CyBaiSecurity/Organice/releases/latest).
+The current Android APK is also attached to [the GitHub release](https://github.com/CyBaiSecurity/Organice/releases/latest). That file is built for 64-bit ARM phones. Android calls that processor `arm64-v8a`. A 32-bit phone cannot install it.
+
+If your own release build stops and the log says `Metaspace`, open the generated file `android/gradle.properties`. Metaspace is the memory Java uses to keep loaded classes. The generated cap is 256 MB, and the release check loads more classes than that. Change the `org.gradle.jvmargs` line so it includes `-XX:MaxMetaspaceSize=768m`, then run the same compile command again.
 
 An iOS build needs a Mac and Xcode. `npm run ios` is the command on that Mac. This repository's release file is the Android APK.
 
