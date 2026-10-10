@@ -1,4 +1,20 @@
+import { formatTime } from '../state/clock.ts';
 import { localDateKey, minutesOfDay, readDue, startOfLocalDay } from './time.ts';
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] as const;
+
+// A task row shows the deadline date and, when the task has a clock time, that time.
+// An all-day task is overdue only after its date has passed. A timed task is overdue
+// once that clock time has passed.
+export function taskSchedule(item: AgendaItem, now: Date): { detail: string; overdue: boolean } | null {
+  if (item.kind !== 'task' || item.dueAt == null || item.dueAt === '') return null;
+  const due = readDue(item.dueAt, item.allDay);
+  if (Number.isNaN(due.getTime())) return null;
+  const date = `${MONTHS[due.getMonth()]} ${due.getDate()}`;
+  const detail = item.allDay ? `${date}, all day` : `${date}, ${formatTime(due)}`;
+  const overdue = item.allDay ? localDateKey(due) < localDateKey(now) : due.getTime() < now.getTime();
+  return { detail, overdue };
+}
 
 export type AgendaItem = {
   kind: 'task' | 'event';

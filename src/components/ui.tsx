@@ -338,6 +338,8 @@ export function Card({
 export function RowButton({
   label,
   detail,
+  note,
+  noteColor,
   onPress,
   paper,
   dimmed,
@@ -347,6 +349,8 @@ export function RowButton({
 }: {
   label: string;
   detail?: string;
+  note?: string;
+  noteColor?: string;
   onPress: () => void;
   paper: Paper;
   dimmed?: boolean;
@@ -355,12 +359,13 @@ export function RowButton({
   wave?: boolean;
 }) {
   const ink = labelColor ?? paper.text;
+  const spoken = [label, detail, note].filter(Boolean).join(', ');
   return (
     <Pressable
       collapsable={false}
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={struck ? `${label}, done` : undefined}
+      accessibilityLabel={struck ? `${label}, done` : note ? spoken : undefined}
       style={[
         styles.row,
         {
@@ -379,7 +384,13 @@ export function RowButton({
         ]}>
         {label}
       </Text>
-      {detail ? <Text style={[styles.rowDetail, { color: paper.muted }]}>{detail}</Text> : null}
+      {detail || note ? (
+        <Text style={styles.rowDetail}>
+          {detail ? <Text style={{ color: paper.muted }}>{detail}</Text> : null}
+          {detail && note ? <Text style={{ color: paper.muted }}>{'  '}</Text> : null}
+          {note ? <Text style={{ color: noteColor ?? paper.muted }}>{note}</Text> : null}
+        </Text>
+      ) : null}
     </Pressable>
   );
 }

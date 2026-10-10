@@ -192,7 +192,7 @@ Low is green. Medium and high have their own colors. A finished task is struck t
 - **Check notification permission**, and a button to open the phone settings if reminders are blocked.
 - **Export database**. The file is a copy of your data, and it is not encrypted. Keep it private.
 
-Your tasks, ideas, habits, and focus history are in `organice.db` on the phone. Uninstalling the app, or losing the phone without an export, loses that file.
+Your tasks, ideas, habits, and focus history are in `organice.db` on the phone. Installing a newer build over the existing app keeps that file when the package name and the signing certificate stay the same and the version code is higher. Uninstalling the app, or losing the phone without an export, loses that file.
 
 ## 📄 License
 

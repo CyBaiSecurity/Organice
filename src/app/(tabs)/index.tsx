@@ -16,7 +16,7 @@ import {
   sessionsEndedSince,
   setCheckin,
 } from '@/db';
-import { splitAgenda, type AgendaItem } from '@/domain/agenda';
+import { splitAgenda, taskSchedule, type AgendaItem } from '@/domain/agenda';
 import { focusSecondsToday } from '@/domain/focusTotal';
 import { isDueOn, toggledBoolean } from '@/domain/habits';
 import { scheduledDates } from '@/domain/habitStats';
@@ -223,6 +223,31 @@ export default function DashboardScreen() {
   });
   const dueHabits = habits.filter((habit) => isDueOn(habit.weekdays, now));
   const clear = split.overdue.length === 0 && split.allDay.length === 0 && split.inside.length === 0 && split.outside.length === 0 && dueHabits.length === 0;
+  const hasUnfinishedTask = [...split.overdue, ...split.allDay, ...split.inside, ...split.outside].some((item) => item.kind === 'task');
+  const overdueRed = mode === 'dark' ? '#FF8A80' : '#C4272F';
+
+  function renderAgenda(item: AgendaItem, bucket: 'overdue' | 'allDay' | 'inside' | 'outside') {
+    const schedule = item.kind === 'task' ? taskSchedule(item, now) : null;
+    let detail: string | undefined;
+    if (schedule) detail = schedule.detail;
+    else if (bucket === 'allDay') detail = 'All-day event';
+    else if (bucket === 'inside') detail = item.startAt ? formatTime(new Date(item.startAt)) : undefined;
+    else if (bucket === 'outside') detail = 'Event';
+    else detail = 'Overdue';
+    return (
+      <RowButton
+        key={`${item.kind}-${item.id}`}
+        paper={paper}
+        wave={item.kind === 'task'}
+        label={item.title}
+        detail={detail}
+        note={schedule?.overdue ? 'Overdue' : undefined}
+        noteColor={overdueRed}
+        labelColor={item.kind === 'task' ? taskInk(item.priority ?? 0, paper) : undefined}
+        onPress={() => openAgenda(item)}
+      />
+    );
+  }
 
   async function toggleHabit(habit: HabitRow) {
     const actedAt = new Date();
@@ -391,41 +416,21 @@ export default function DashboardScreen() {
       ) : (
         <Muted color={paper.muted}>No habit is due today.</Muted>
       )}
-      {split.overdue.map((item) => (
-        <RowButton key={item.id} paper={paper} wave={item.kind === 'task'} label={item.title} detail="Overdue" labelColor={item.kind === 'task' ? taskInk(item.priority ?? 0, paper) : undefined} onPress={() => router.push(`/task/${item.id}`)} />
-      ))}
-      {split.allDay.map((item) => (
-        <RowButton
-          key={`${item.kind}-${item.id}`}
-          paper={paper}
-          wave={item.kind === 'task'}
-          label={item.title}
-          detail={item.kind === 'event' ? 'All-day event' : 'All day'}
-          labelColor={item.kind === 'task' ? taskInk(item.priority ?? 0, paper) : undefined}
-          onPress={() => openAgenda(item)}
-        />
-      ))}
-      {split.inside.map((item) => (
-        <RowButton
-          key={`${item.kind}-${item.id}`}
-          paper={paper}
-          wave={item.kind === 'task'}
-          label={item.title}
-          detail={item.startAt ? formatTime(new Date(item.startAt)) : item.dueAt ? formatTime(new Date(item.dueAt)) : undefined}
-          labelColor={item.kind === 'task' ? taskInk(item.priority ?? 0, paper) : undefined}
-          onPress={() => openAgenda(item)}
-        />
-      ))}
+      {hasUnfinishedTask ? (
+        <View style={styles.taskHeading}>
+          <Star color={paper.text} />
+          <Muted color={paper.muted}>Unfinished tasks</Muted>
+        </View>
+      ) : null}
+      {split.overdue.map((item) => renderAgenda(item, 'overdue'))}
+      {split.allDay.map((item) => renderAgenda(item, 'allDay'))}
+      {split.inside.map((item) => renderAgenda(item, 'inside'))}
       {split.outside.length > 0 ? (
         <View>
           <Pressable onPress={() => setOutsideOpen((open) => !open)}>
             <Text style={{ color: paper.text, paddingVertical: 12 }}>Outside working hours ({split.outside.length})</Text>
           </Pressable>
-          {outsideOpen
-            ? split.outside.map((item) => (
-                <RowButton key={`${item.kind}-${item.id}`} paper={paper} wave={item.kind === 'task'} label={item.title} detail={item.kind === 'event' ? 'Event' : 'Task'} labelColor={item.kind === 'task' ? taskInk(item.priority ?? 0, paper) : undefined} onPress={() => openAgenda(item)} />
-              ))
-            : null}
+          {outsideOpen ? split.outside.map((item) => renderAgenda(item, 'outside')) : null}
         </View>
       ) : null}
       {clear ? (
@@ -448,6 +453,7 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 12 },
   date: { flex: 1, fontFamily: 'Georgia', fontSize: 22, lineHeight: 26 },
   kicker: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  taskHeading: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 },
   block: { gap: 8 },
   habitActions: { flexDirection: 'row', gap: 8, alignItems: 'stretch' },
   habitAction: { flex: 1 },

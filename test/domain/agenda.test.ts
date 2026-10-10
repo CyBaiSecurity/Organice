@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { splitAgenda, type AgendaItem } from '../../src/domain/agenda.ts';
+import { splitAgenda, taskSchedule, type AgendaItem } from '../../src/domain/agenda.ts';
 
 function at(hour: number, minute = 0): string {
   return new Date(2026, 9, 8, hour, minute, 0, 0).toISOString();
@@ -100,4 +100,38 @@ test('splits overdue, all-day, and working-hours buckets without duplicating a t
   assert.equal(seen.filter((entry) => entry.id === 'overdue').length, 1);
   assert.equal(seen.filter((entry) => entry.id === 'past-event').length, 0);
   assert.equal(seen.filter((entry) => entry.id === 'tomorrow').length, 0);
+});
+
+test('task schedule shows the deadline date and a past deadline is overdue', () => {
+  const now = new Date(2026, 9, 8, 12, 0, 0, 0);
+  const yesterday = taskSchedule(
+    item({ id: 'y', kind: 'task', dueAt: new Date(2026, 9, 7, 18, 0, 0, 0).toISOString() }),
+    now,
+  );
+  assert.equal(yesterday?.overdue, true);
+  assert.match(yesterday?.detail ?? '', /^Oct 7, /);
+
+  const morning = taskSchedule(
+    item({ id: 'm', kind: 'task', dueAt: new Date(2026, 9, 8, 8, 0, 0, 0).toISOString() }),
+    now,
+  );
+  assert.equal(morning?.overdue, true);
+  assert.match(morning?.detail ?? '', /^Oct 8, /);
+
+  const evening = taskSchedule(
+    item({ id: 'e', kind: 'task', dueAt: new Date(2026, 9, 8, 20, 0, 0, 0).toISOString() }),
+    now,
+  );
+  assert.equal(evening?.overdue, false);
+  assert.match(evening?.detail ?? '', /^Oct 8, /);
+
+  const allDayToday = taskSchedule(item({ id: 'a', kind: 'task', allDay: true, dueAt: '2026-10-08' }), now);
+  assert.equal(allDayToday?.overdue, false);
+  assert.equal(allDayToday?.detail, 'Oct 8, all day');
+
+  const allDayOld = taskSchedule(item({ id: 'o', kind: 'task', allDay: true, dueAt: '2026-10-07' }), now);
+  assert.equal(allDayOld?.overdue, true);
+  assert.equal(allDayOld?.detail, 'Oct 7, all day');
+
+  assert.equal(taskSchedule(item({ id: 'ev', kind: 'event', dueAt: at(9) }), now), null);
 });
