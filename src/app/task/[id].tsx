@@ -21,7 +21,7 @@ import {
   setChecklistDone,
   updateTask,
 } from '@/db';
-import { addLocalDays, isoWeekday, localDateKey, nowIso, readDue, startOfLocalDay } from '@/domain/time';
+import { addLocalDays, isoWeekday, localDateKey, nowIso, readDue, startOfLocalDay, WEEK_LABELS } from '@/domain/time';
 import { snoozedAt } from '@/domain/snooze';
 import { combineDateAndTime, dateKeyInput, formatDay, parseClock } from '@/state/clock';
 import { eventSpan, syncTaskSideEffects, unlinkCalendar, type TaskRow } from '@/state/effects';
@@ -44,7 +44,6 @@ const OFFSETS: { value: number | null; label: string }[] = [
   { value: 60, label: '1 hour before' },
   { value: 1440, label: '1 day before' },
 ];
-const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const REPEAT = [
   { value: 'none', label: 'None' },
   { value: 'daily', label: 'Daily' },
@@ -82,7 +81,7 @@ function startOfMonth(date: Date): Date {
 
 function monthCells(cursor: Date): ({ day: number; key: string } | null)[] {
   const first = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
-  const lead = isoWeekday(first) - 1;
+  const lead = first.getDay();
   const count = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0).getDate();
   const cells: ({ day: number; key: string } | null)[] = Array.from({ length: lead }, () => null);
   for (let day = 1; day <= count; day += 1) {
@@ -162,9 +161,9 @@ function DeadlineDropdown({
             </Pressable>
           </View>
           <View style={styles.monthGrid}>
-            {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((name) => (
-              <View key={name} style={styles.dayCell}>
-                <Text style={{ color: paper.muted }}>{name.slice(0, 1)}</Text>
+            {WEEK_LABELS.map((day) => (
+              <View key={day.label} style={styles.dayCell}>
+                <Text style={{ color: paper.muted }}>{day.label.slice(0, 1)}</Text>
               </View>
             ))}
             {monthCells(cursor).map((cell, index) => {
@@ -581,19 +580,16 @@ export default function TaskScreen() {
       </View>
       {repeat === 'weekly' ? (
         <View style={styles.wrap}>
-          {WEEKDAYS.map((label, index) => {
-            const day = index + 1;
-            return (
+          {WEEK_LABELS.map((day) => (
               <Chip
-                key={label}
-                label={label}
-                selected={weekdays.includes(day)}
+                key={day.label}
+                label={day.label}
+                selected={weekdays.includes(day.iso)}
                 accent={paper.text}
                 paper={paper}
-                onPress={() => setWeekdays((current) => (current.includes(day) ? current.filter((item) => item !== day) : [...current, day]))}
+                onPress={() => setWeekdays((current) => (current.includes(day.iso) ? current.filter((item) => item !== day.iso) : [...current, day.iso]))}
               />
-            );
-          })}
+          ))}
         </View>
       ) : null}
       {repeat === 'after_complete' ? <Field label="Days after completion" value={interval} onChangeText={setInterval} paper={paper} /> : null}

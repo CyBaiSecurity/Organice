@@ -12,11 +12,11 @@ import {
   weekContaining,
 } from '../../src/domain/timelineLayout.ts';
 
-test('the week that contains a Wednesday starts on Monday', () => {
+test('the week that contains a Wednesday starts on Sunday', () => {
   const week = weekContaining(new Date(2026, 9, 7));
   assert.equal(week.length, 7);
-  assert.equal(week[0]?.toDateString(), new Date(2026, 9, 5).toDateString());
-  assert.equal(week[6]?.toDateString(), new Date(2026, 9, 11).toDateString());
+  assert.equal(week[0]?.toDateString(), new Date(2026, 9, 4).toDateString());
+  assert.equal(week[6]?.toDateString(), new Date(2026, 9, 10).toDateString());
 });
 
 test('dayDelta counts local midnights, including a move onto the same day', () => {

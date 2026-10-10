@@ -6,7 +6,7 @@ import { useSQLiteContext } from 'expo-sqlite';
 
 import { Button, InkFooter, InkHeader, Muted, PageScroll, RowButton, Sheet, Title } from '@/components/ui';
 import { getCachedEvents, listTasks, replaceCache } from '@/db';
-import { addLocalDays, localDateKey, parseLocalDateKey, readDue, startOfLocalDay } from '@/domain/time';
+import { addLocalDays, localDateKey, monthGrid, parseLocalDateKey, readDue, startOfLocalDay, WEEK_LABELS } from '@/domain/time';
 import { formatTime } from '@/state/clock';
 import { useOrganice } from '@/state/organice';
 import { PAPER, taskInk } from '@/theme/palette';
@@ -38,12 +38,7 @@ export default function CalendarScreen() {
   const [failed, setFailed] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const grid = useMemo(() => {
-    const first = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
-    const pad = (first.getDay() + 6) % 7;
-    const start = addLocalDays(first, -pad);
-    return Array.from({ length: 42 }, (_, index) => addLocalDays(start, index));
-  }, [cursor]);
+  const grid = useMemo(() => monthGrid(cursor), [cursor]);
 
   const load = useCallback(async () => {
     const access = await calendarAvailability();
@@ -128,6 +123,11 @@ export default function CalendarScreen() {
         </View>
       </View>
       <View style={styles.grid}>
+        {WEEK_LABELS.map((day) => (
+          <View key={day.label} style={styles.cell}>
+            <Text style={{ color: paper.muted, fontFamily: 'Georgia', fontSize: 11 }}>{day.label}</Text>
+          </View>
+        ))}
         {grid.map((day) => {
           const key = localDateKey(day);
           const inMonth = day.getMonth() === cursor.getMonth();

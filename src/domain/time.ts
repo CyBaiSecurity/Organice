@@ -32,6 +32,37 @@ export function isoWeekday(date: Date): number {
   return day;
 }
 
+// Every calendar row uses this order. Sunday is column 0. The stored habit
+// number stays on the ISO scale, where Monday is 1 and Sunday is 7.
+export const WEEK_LABELS = [
+  { iso: 7, label: 'Sun' },
+  { iso: 1, label: 'Mon' },
+  { iso: 2, label: 'Tue' },
+  { iso: 3, label: 'Wed' },
+  { iso: 4, label: 'Thu' },
+  { iso: 5, label: 'Fri' },
+  { iso: 6, label: 'Sat' },
+] as const;
+
+export function weekdayShort(date: Date): string {
+  return WEEK_LABELS[date.getDay()]?.label ?? '';
+}
+
+export function startOfWeek(date: Date): Date {
+  return addLocalDays(startOfLocalDay(date), -date.getDay());
+}
+
+export function weekContaining(date: Date): Date[] {
+  const sunday = startOfWeek(date);
+  return Array.from({ length: 7 }, (_, index) => addLocalDays(sunday, index));
+}
+
+export function monthGrid(cursor: Date): Date[] {
+  const first = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
+  const start = addLocalDays(first, -first.getDay());
+  return Array.from({ length: 42 }, (_, index) => addLocalDays(start, index));
+}
+
 // Expo notifications count 1 as Sunday. ISO weekdays count 1 as Monday.
 export function notificationWeekday(iso: number): number {
   return (iso % 7) + 1;

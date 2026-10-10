@@ -6,11 +6,10 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { Button, Card, Chip, Field, Muted } from '@/components/ui';
 import { createHabit, deleteHabit, listHabits, type HabitRow } from '@/db';
 import { LIMITS } from '@/domain/limits';
+import { WEEK_LABELS } from '@/domain/time';
 import { cancelNotification } from '@/services/notifications';
 import { useOrganice } from '@/state/organice';
 import { PAPER } from '@/theme/palette';
-
-const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 function trackedAs(habit: HabitRow): string {
   if (habit.kind !== 'count') return 'Yes or no';
@@ -20,7 +19,7 @@ function trackedAs(habit: HabitRow): string {
 
 function dueDays(weekdays: string): string {
   const selected = new Set(weekdays.split(',').map((part) => Number(part)));
-  const names = DAYS.filter((_, index) => selected.has(index + 1));
+  const names = WEEK_LABELS.filter((day) => selected.has(day.iso)).map((day) => day.label);
   if (names.length === 0) return 'Not scheduled on any day';
   return `Due ${names.join(', ')}`;
 }
@@ -87,19 +86,16 @@ export default function HabitsScreen() {
       ) : null}
       <Text style={{ color: paper.text, fontSize: 16 }}>Days it is due</Text>
       <View style={styles.wrap}>
-        {DAYS.map((label, index) => {
-          const day = index + 1;
-          return (
+        {WEEK_LABELS.map((day) => (
             <Chip
-              key={label}
-              label={label}
-              selected={days.includes(day)}
+              key={day.label}
+              label={day.label}
+              selected={days.includes(day.iso)}
               accent={paper.text}
               paper={paper}
-              onPress={() => setDays((current) => current.includes(day) ? current.filter((item) => item !== day) : [...current, day])}
+              onPress={() => setDays((current) => current.includes(day.iso) ? current.filter((item) => item !== day.iso) : [...current, day.iso])}
             />
-          );
-        })}
+        ))}
       </View>
       <Button
         label="Create habit"

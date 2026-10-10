@@ -1,4 +1,6 @@
-import { addLocalDays, isoWeekday, startOfLocalDay } from './time.ts';
+import { addLocalDays, startOfLocalDay } from './time.ts';
+
+export { weekContaining } from './time.ts';
 
 // One hour is 64 pixels, so a 30-minute task is tall enough for its title.
 // Android's calendar uses the same idea: a readable hour row, and a minimum
@@ -6,8 +8,6 @@ import { addLocalDays, isoWeekday, startOfLocalDay } from './time.ts';
 export const HOUR_HEIGHT = 64;
 export const MIN_BLOCK_HEIGHT = 32;
 export const HOUR_COUNT = 24;
-
-export const WEEKDAY_SHORT = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as const;
 
 export type MinuteSpan = { startMin: number; endMin: number };
 
@@ -18,12 +18,6 @@ export type DayBlock = MinuteSpan & {
   lane: number;
   lanes: number;
 };
-
-// The week starts on Monday, matching the habit week in the rest of the app.
-export function weekContaining(day: Date): Date[] {
-  const monday = addLocalDays(startOfLocalDay(day), 1 - isoWeekday(day));
-  return Array.from({ length: 7 }, (_, index) => addLocalDays(monday, index));
-}
 
 export function dayDelta(from: Date, to: Date): number {
   const start = startOfLocalDay(from).getTime();

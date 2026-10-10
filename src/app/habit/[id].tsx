@@ -6,7 +6,7 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { Button, Field, Muted } from '@/components/ui';
 import { deleteHabit, getCheckins, listHabits, setCheckin, updateHabit } from '@/db';
 import { canCheckDate, clampedCount, isDueOn } from '@/domain/habits';
-import { localDateKey, parseLocalDateKey } from '@/domain/time';
+import { localDateKey, parseLocalDateKey, WEEK_LABELS } from '@/domain/time';
 import { clockLabel, parseClock } from '@/state/clock';
 import { useOrganice } from '@/state/organice';
 import { PAPER } from '@/theme/palette';
@@ -23,8 +23,6 @@ type Habit = {
   notification_id: string | null;
   archived: number;
 };
-
-const WEEKDAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 export default function HabitScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -58,7 +56,7 @@ export default function HabitScreen() {
   const monthCursor = new Date();
   const days = new Date(monthCursor.getFullYear(), monthCursor.getMonth() + 1, 0).getDate();
   const first = new Date(monthCursor.getFullYear(), monthCursor.getMonth(), 1);
-  const leadingBlanks = (first.getDay() + 6) % 7;
+  const leadingBlanks = first.getDay();
   const slots = [
     ...Array.from({ length: leadingBlanks }, (_, index) => ({ kind: 'blank' as const, key: `blank-${index}`, day: 0 })),
     ...Array.from({ length: days }, (_, index) => ({
@@ -134,8 +132,8 @@ export default function HabitScreen() {
       <Muted color={paper.muted}>Tap a due day to check it. Long-press a count to lower it.</Muted>
       <View style={styles.grid}>
         <View style={styles.week}>
-          {WEEKDAY_LABELS.map((label) => (
-            <Text key={label} style={[styles.cell, { color: paper.muted, textAlign: 'center' }]}>{label}</Text>
+          {WEEK_LABELS.map((day) => (
+            <Text key={day.label} style={[styles.cell, { color: paper.muted, textAlign: 'center' }]}>{day.label}</Text>
           ))}
         </View>
         {weeks(slots).map((row, rowIndex) => (

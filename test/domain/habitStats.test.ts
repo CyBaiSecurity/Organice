@@ -44,9 +44,18 @@ test('the rate counts due days and ignores a check on a day off', () => {
     ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
   );
   const current = stat.weeks[stat.weeks.length - 1];
-  assert.equal(current.weekStart, '2026-10-05');
+  assert.equal(current.weekStart, '2026-10-04');
   assert.equal(current.due, 5);
   assert.equal(current.met, 2);
+});
+
+test('day bars list Sunday before Monday', () => {
+  const [stat] = habitReport(
+    [{ ...weekdayHabit, weekdays: '7,1', createdOn: '2026-10-04' }],
+    [],
+    '2026-10-10',
+  );
+  assert.deepEqual(stat?.days.map((day) => day.label), ['Sun', 'Mon']);
 });
 
 test('a count habit is met only when the value reaches the goal', () => {

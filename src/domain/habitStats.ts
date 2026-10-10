@@ -1,8 +1,6 @@
-import { addLocalDays, isoWeekday, localDateKey, parseLocalDateKey } from './time.ts';
+import { addLocalDays, isoWeekday, localDateKey, parseLocalDateKey, WEEK_LABELS } from './time.ts';
 
 export const HABIT_WEEK_COUNT = 8;
-
-const WEEKDAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as const;
 
 export function weekdaySet(weekdays: string): Set<number> {
   const days = new Set<number>();
@@ -67,9 +65,9 @@ function metValue(kind: 'boolean' | 'count', goal: number | null, value: number 
   return value >= 1;
 }
 
-function mondayOnOrBefore(dateKey: string): string {
+function sundayOnOrBefore(dateKey: string): string {
   const date = parseLocalDateKey(dateKey);
-  return localDateKey(addLocalDays(date, 1 - isoWeekday(date)));
+  return localDateKey(addLocalDays(date, -date.getDay()));
 }
 
 function marksByHabit(marks: readonly CheckMark[]): Map<string, Map<string, number>> {
@@ -92,7 +90,7 @@ export function habitReport(
   weekCount = HABIT_WEEK_COUNT,
 ): HabitStat[] {
   const byHabit = marksByHabit(marks);
-  const firstMonday = localDateKey(addLocalDays(parseLocalDateKey(mondayOnOrBefore(todayKey)), -7 * (weekCount - 1)));
+  const firstSunday = localDateKey(addLocalDays(parseLocalDateKey(sundayOnOrBefore(todayKey)), -7 * (weekCount - 1)));
   return habits.map((habit) => {
     const allowed = weekdaySet(habit.weekdays);
     const values = byHabit.get(habit.id) ?? new Map<string, number>();
@@ -102,7 +100,7 @@ export function habitReport(
     const dayMet = new Map<number, { met: number; due: number }>();
     for (const iso of allowed) dayMet.set(iso, { met: 0, due: 0 });
     for (let index = 0; index < weekCount; index += 1) {
-      const weekStart = localDateKey(addLocalDays(parseLocalDateKey(firstMonday), index * 7));
+      const weekStart = localDateKey(addLocalDays(parseLocalDateKey(firstSunday), index * 7));
       let weekMet = 0;
       let weekDue = 0;
       for (let offset = 0; offset < 7; offset += 1) {
@@ -123,10 +121,10 @@ export function habitReport(
       weeks.push({ weekStart, met: weekMet, due: weekDue });
     }
     const days = [...allowed]
-      .sort((left, right) => left - right)
+      .sort((left, right) => (left % 7) - (right % 7))
       .map((iso) => {
         const bucket = dayMet.get(iso) ?? { met: 0, due: 0 };
-        return { iso, label: WEEKDAY_LABELS[iso - 1] ?? '', met: bucket.met, due: bucket.due };
+        return { iso, label: WEEK_LABELS.find((day) => day.iso === iso)?.label ?? '', met: bucket.met, due: bucket.due };
       });
     return {
       id: habit.id,

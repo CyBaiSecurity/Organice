@@ -4,7 +4,6 @@ import { PanResponder, Pressable, ScrollView, StyleSheet, Text, View } from 'rea
 import {
   HOUR_COUNT,
   HOUR_HEIGHT,
-  WEEKDAY_SHORT,
   clipToDay,
   clockLabel,
   createMinutes,
@@ -14,7 +13,7 @@ import {
   weekContaining,
   type DayBlock,
 } from '@/domain/timelineLayout';
-import { atLocalMinutes, isoWeekday, localDateKey, minutesOfDay, startOfLocalDay } from '@/domain/time';
+import { atLocalMinutes, localDateKey, minutesOfDay, startOfLocalDay, weekdayShort } from '@/domain/time';
 import { type TaskRow } from '@/state/effects';
 import { taskInk, type Paper } from '@/theme/palette';
 
@@ -90,10 +89,10 @@ export function Timeline({
             <Pressable
               key={key}
               accessibilityRole="button"
-              accessibilityLabel={today ? `${WEEKDAY_SHORT[isoWeekday(date) - 1]} ${date.getDate()}, today` : `${WEEKDAY_SHORT[isoWeekday(date) - 1]} ${date.getDate()}`}
+              accessibilityLabel={today ? `${weekdayShort(date)} ${date.getDate()}, today` : `${weekdayShort(date)} ${date.getDate()}`}
               onPress={() => onShift(dayDelta(day, date))}
               style={styles.day}>
-              <Text style={[styles.weekday, { color: chosen ? paper.text : paper.muted }]}>{WEEKDAY_SHORT[isoWeekday(date) - 1]}</Text>
+              <Text style={[styles.weekday, { color: chosen ? paper.text : paper.muted }]}>{weekdayShort(date)}</Text>
               <View style={[styles.dayNum, { backgroundColor: chosen ? paper.text : 'transparent', borderColor: today || chosen ? paper.text : 'transparent' }]}>
                 <Text style={{ color: chosen ? paper.bg : paper.text, fontFamily: 'Georgia', fontSize: 14, fontWeight: today ? '700' : '400' }}>{date.getDate()}</Text>
               </View>

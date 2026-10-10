@@ -6,6 +6,7 @@ import {
   isDateKey,
   isoWeekday,
   localDateKey,
+  monthGrid,
   minutesOfDay,
   notificationWeekday,
   nowIso,
@@ -45,6 +46,15 @@ test('date keys round-trip through local midnight', () => {
   assert.equal(isDateKey(key), true);
   assert.equal(isDateKey('2026-10-8'), false);
   assert.equal(isDateKey('2026-10-08T00:00:00'), false);
+});
+
+test('a month grid and its week start on Sunday', () => {
+  const grid = monthGrid(new Date(2026, 9, 15));
+  assert.equal(grid.length, 42);
+  assert.equal(localDateKey(grid[0] as Date), '2026-09-27');
+  assert.equal(grid[0]?.getDay(), 0);
+  assert.equal(localDateKey(grid[4] as Date), '2026-10-01');
+  assert.equal(grid[6]?.getDay(), 6);
 });
 
 test('ISO weekdays convert to Expo notification weekdays', () => {

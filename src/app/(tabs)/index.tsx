@@ -20,7 +20,7 @@ import { splitAgenda, taskSchedule, type AgendaItem } from '@/domain/agenda';
 import { focusSecondsToday } from '@/domain/focusTotal';
 import { isDueOn, toggledBoolean } from '@/domain/habits';
 import { scheduledDates } from '@/domain/habitStats';
-import { addLocalDays, isoWeekday, localDateKey, startOfLocalDay } from '@/domain/time';
+import { addLocalDays, localDateKey, startOfLocalDay, weekContaining, weekdayShort } from '@/domain/time';
 import { formatDay, formatTime } from '@/state/clock';
 import { useOrganice } from '@/state/organice';
 import { PAPER, taskInk } from '@/theme/palette';
@@ -55,7 +55,6 @@ type DashEvent = {
 };
 
 const CALENDAR_FRESH_MS = 60_000;
-const WEEKDAY_SHORT = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 function eventsFromCache(
   rows: { event_id: string; calendar_id: string; title: string; start_at: string; end_at: string; all_day: number }[],
@@ -307,7 +306,7 @@ export default function DashboardScreen() {
     });
   }
 
-  const days = Array.from({ length: 7 }, (_, index) => addLocalDays(startOfLocalDay(now), index - 6));
+  const days = weekContaining(now);
 
   return (
     <View style={styles.screen}>
@@ -402,7 +401,7 @@ export default function DashboardScreen() {
                   return (
                     <View key={key} style={styles.day}>
                       <Text numberOfLines={1} style={{ color: paper.text, fontFamily: 'Georgia', fontSize: 12, fontWeight: today ? '700' : '400' }}>
-                        {WEEKDAY_SHORT[isoWeekday(day) - 1]}
+                        {weekdayShort(day)}
                       </Text>
                       <View style={[styles.mark, { backgroundColor: filled ? paper.text : paper.surface, borderColor: paper.text, borderBottomColor: paper.text }]} />
                     </View>
