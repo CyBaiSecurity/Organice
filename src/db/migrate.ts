@@ -161,21 +161,125 @@ CREATE TRIGGER task_fts_delete AFTER DELETE ON task BEGIN
 END;
 `;
 
-export async function migrate(db: SQLiteDatabase): Promise<void> {
-  const row = await db.getFirstAsync<{ user_version: number }>('PRAGMA user_version');
-  const version = Number(row?.user_version ?? 0);
-  if (version >= 1) {
-    await db.execAsync('PRAGMA foreign_keys = ON');
-    return;
-  }
+// Version 2 adds routine tables and task.next_action. There is no user text in this string.
+const MIGRATION_V2_SQL = `
+CREATE TABLE IF NOT EXISTS routine_config (
+  id INTEGER PRIMARY KEY CHECK (id = 1),
+  enabled INTEGER NOT NULL CHECK (enabled IN (0, 1)),
+  workout_habit_id TEXT REFERENCES habit(id) ON DELETE SET NULL,
+  updated_at TEXT NOT NULL
+);
 
-  await db.execAsync('PRAGMA journal_mode = WAL');
-  await db.execAsync('PRAGMA foreign_keys = ON');
+CREATE TABLE IF NOT EXISTS routine_block (
+  id TEXT PRIMARY KEY NOT NULL,
+  pattern TEXT NOT NULL CHECK (pattern IN ('mon_wed', 'tue_thu', 'fri', 'sat', 'sun')),
+  weekdays TEXT NOT NULL,
+  sort INTEGER NOT NULL,
+  title TEXT NOT NULL,
+  instructions TEXT NOT NULL DEFAULT '',
+  start_minute INTEGER CHECK (start_minute IS NULL OR (start_minute >= 0 AND start_minute <= 1439)),
+  end_minute INTEGER CHECK (end_minute IS NULL OR (end_minute >= 0 AND end_minute <= 1439)),
+  role TEXT NOT NULL CHECK (role IN (
+    'fixed', 'school', 'commute', 'first-hour-at-home', 'evening', 'unconfirmed-meeting'
+  )),
+  enabled INTEGER NOT NULL CHECK (enabled IN (0, 1)),
+  remind INTEGER NOT NULL CHECK (remind IN (0, 1)),
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  CHECK (end_minute IS NULL OR (start_minute IS NOT NULL AND end_minute > start_minute))
+);
+
+CREATE TABLE IF NOT EXISTS routine_day (
+  local_date TEXT PRIMARY KEY NOT NULL,
+  selected_task_id TEXT REFERENCES task(id) ON DELETE SET NULL,
+  no_classes INTEGER NOT NULL CHECK (no_classes IN (0, 1)),
+  home_at_minute INTEGER CHECK (home_at_minute IS NULL OR (home_at_minute >= 0 AND home_at_minute <= 1439)),
+  home_late INTEGER NOT NULL CHECK (home_late IN (0, 1)),
+  updated_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS routine_review (
+  week_ending TEXT PRIMARY KEY NOT NULL,
+  finished TEXT NOT NULL DEFAULT '',
+  attention TEXT NOT NULL DEFAULT '',
+  crowded TEXT NOT NULL DEFAULT '',
+  next_task_id TEXT REFERENCES task(id) ON DELETE SET NULL,
+  updated_at TEXT NOT NULL
+);
+`;
+
+export async function migrate(db: SQLiteDatabase): Promise<void> {
+  const version = await userVersion(db);
+  if (version < 1) {
+    await db.execAsync('PRAGMA journal_mode = WAL');
+    await db.execAsync('PRAGMA foreign_keys = ON');
+    await db.withTransactionAsync(async () => {
+      await db.execAsync(MIGRATION_SQL);
+      await seed(db);
+      await db.execAsync('PRAGMA user_version = 1');
+    });
+  } else {
+    await db.execAsync('PRAGMA foreign_keys = ON');
+  }
+  if (version < 2) await migrateToV2(db);
+  if (version < 3) await migrateToV3(db);
+  if (version < 4) await migrateToV4(db);
+}
+
+async function migrateToV2(db: SQLiteDatabase): Promise<void> {
   await db.withTransactionAsync(async () => {
-    await db.execAsync(MIGRATION_SQL);
-    await seed(db);
-    await db.execAsync('PRAGMA user_version = 1');
+    const columns = await db.getAllAsync<{ name: string }>('PRAGMA table_info(task)');
+    if (!columns.some((column) => column.name === 'next_action')) {
+      await db.execAsync("ALTER TABLE task ADD COLUMN next_action TEXT NOT NULL DEFAULT ''");
+    }
+    await db.execAsync(MIGRATION_V2_SQL);
+    await db.runAsync(
+      `INSERT INTO routine_config (id, enabled, workout_habit_id, updated_at)
+       VALUES (?, ?, ?, ?)
+       ON CONFLICT(id) DO NOTHING`,
+      1,
+      0,
+      null,
+      nowIso(),
+    );
+    await db.execAsync('PRAGMA user_version = 2');
   });
+}
+
+// Version 3 records whether setup has already run. Databases already at version 2 gain the column.
+async function migrateToV3(db: SQLiteDatabase): Promise<void> {
+  await db.withTransactionAsync(async () => {
+    const columns = await db.getAllAsync<{ name: string }>('PRAGMA table_info(routine_config)');
+    if (columns.length > 0 && !columns.some((column) => column.name === 'initialized')) {
+      await db.execAsync('ALTER TABLE routine_config ADD COLUMN initialized INTEGER NOT NULL DEFAULT 0');
+    }
+    await db.execAsync('PRAGMA user_version = 3');
+  });
+}
+
+// Version 4 stores routine notification ids. It does not rewrite blocks, tasks, or config.
+const MIGRATION_V4_SQL = `
+CREATE TABLE IF NOT EXISTS routine_notification (
+  identifier TEXT PRIMARY KEY NOT NULL,
+  block_id TEXT NOT NULL,
+  local_date TEXT NOT NULL,
+  fires_at TEXT NOT NULL,
+  title TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+`;
+
+async function migrateToV4(db: SQLiteDatabase): Promise<void> {
+  await db.withTransactionAsync(async () => {
+    await db.execAsync(MIGRATION_V4_SQL);
+    await db.execAsync('PRAGMA user_version = 4');
+  });
+}
+
+async function userVersion(db: SQLiteDatabase): Promise<number> {
+  const row = await db.getFirstAsync<{ user_version: number }>('PRAGMA user_version');
+  return Number(row?.user_version ?? 0);
 }
 
 async function seed(db: SQLiteDatabase): Promise<void> {

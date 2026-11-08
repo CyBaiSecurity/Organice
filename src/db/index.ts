@@ -65,6 +65,29 @@ export {
 } from './focus.ts';
 export { getCachedEvents, replaceCache } from './calendar.ts';
 export { getSettings, updateSettings } from './settings.ts';
+export {
+  addRoutineBlock,
+  clearRoutineOverrides,
+  deleteRoutineBlock,
+  getRoutineConfig,
+  getRoutineDay,
+  getRoutineReview,
+  listRoutineBlocks,
+  previewRoutineTemplate,
+  saveRoutineReview,
+  selectRoutineTask,
+  setRoutineEnabled,
+  setupRoutine,
+  suggestEarlierTask,
+  toRoutineBlockView,
+  updateRoutineBlock,
+  updateRoutineDay,
+} from './routine.ts';
+export {
+  deleteRoutineNotification,
+  listRoutineNotifications,
+  saveRoutineNotification,
+} from './routineNotifications.ts';
 
 export type {
   CalendarCacheInput,
@@ -86,4 +109,17 @@ export type {
   TaskListFilter,
   TaskPatch,
   TaskRow,
+  EarlierTaskSuggestion,
+  RoutineBlockInput,
+  RoutineBlockPatch,
+  RoutineBlockRow,
+  RoutineConfig,
+  RoutineDayPatch,
+  RoutineDayState,
+  RoutineReview,
+  RoutineReviewInput,
+  SetupRoutineInput,
+  SetupRoutineResult,
+  TaskLinkStatus,
 } from './types.ts';
+export type { RoutineNotificationRecord } from './routineNotifications.ts';

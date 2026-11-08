@@ -1,4 +1,5 @@
 import type { RepeatKind } from '../domain/repeat.ts';
+import type { RoutinePatternId, RoutineRole } from '../domain/routineTemplate.ts';
 
 export type ListView = 'list' | 'board' | 'timeline';
 
@@ -27,6 +28,7 @@ export type TaskRow = {
   section_id: string | null;
   title: string;
   notes: string;
+  next_action: string;
   status: 'open' | 'completed';
   priority: number;
   all_day: number;
@@ -50,6 +52,7 @@ export type TaskInput = {
   list_id: string;
   title: string;
   notes?: string | null;
+  next_action?: string | null;
   section_id?: string | null;
   priority?: number;
   all_day?: number;
@@ -184,6 +187,98 @@ export type SettingsRow = {
   focus_cycle_count: number;
   reminders_inexact: number;
   schema_note: string | null;
+};
+
+export type RoutineBlockRow = {
+  id: string;
+  pattern: RoutinePatternId;
+  weekdays: string;
+  sort: number;
+  title: string;
+  instructions: string;
+  start_minute: number | null;
+  end_minute: number | null;
+  role: RoutineRole;
+  enabled: number;
+  remind: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type RoutineBlockInput = {
+  pattern: RoutinePatternId;
+  weekdays: number[];
+  title: string;
+  instructions?: string | null;
+  startMinute?: number | null;
+  endMinute?: number | null;
+  role: RoutineRole;
+  enabled?: boolean;
+  remind?: boolean;
+  sort?: number;
+};
+
+export type RoutineBlockPatch = Partial<RoutineBlockInput>;
+
+export type RoutineConfig = {
+  enabled: boolean;
+  initialized: boolean;
+  workoutHabitId: string | null;
+  updatedAt: string;
+};
+
+export type TaskLinkStatus = 'none' | 'open' | 'completed' | 'missing';
+
+export type RoutineDayState = {
+  localDate: string;
+  selectedTaskId: string | null;
+  selectedTaskStatus: TaskLinkStatus;
+  noClasses: boolean;
+  homeAtMinute: number | null;
+  homeLate: boolean;
+};
+
+export type RoutineDayPatch = {
+  noClasses?: boolean;
+  homeAtMinute?: number | null;
+  homeLate?: boolean;
+};
+
+export type RoutineReview = {
+  weekEnding: string;
+  finished: string;
+  attention: string;
+  crowded: string;
+  nextTaskId: string | null;
+  nextTaskStatus: TaskLinkStatus;
+  saved: boolean;
+  updatedAt: string | null;
+};
+
+export type RoutineReviewInput = {
+  finished: string;
+  attention: string;
+  crowded: string;
+  nextTaskId?: string | null;
+};
+
+export type SetupRoutineInput = {
+  workoutHabitId?: string | null;
+  createWorkout?: boolean;
+};
+
+export type SetupRoutineResult = {
+  config: RoutineConfig;
+  blockCount: number;
+  insertedBlocks: number;
+  workoutHabitId: string | null;
+  createdWorkout: boolean;
+};
+
+export type EarlierTaskSuggestion = {
+  taskId: string;
+  localDate: string;
+  title: string;
 };
 
 export type SettingsPatch = Partial<{

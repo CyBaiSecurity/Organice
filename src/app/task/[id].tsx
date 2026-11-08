@@ -195,6 +195,7 @@ export default function TaskScreen() {
   const [task, setTask] = useState<TaskRow | null>(null);
   const [title, setTitle] = useState('');
   const [notes, setNotes] = useState('');
+  const [nextAction, setNextAction] = useState('');
   const [listId, setListId] = useState(params.listId ?? settings.default_list_id ?? '');
   const [lists, setLists] = useState<{ id: string; name: string; accent: string }[]>([]);
   const [sections, setSections] = useState<{ id: string; name: string }[]>([]);
@@ -233,11 +234,12 @@ export default function TaskScreen() {
       setListId((current) => current || listRows[0]?.id || '');
       return;
     }
-    const row = (await getTask(db, params.id)) as TaskRow | null;
+    const row = (await getTask(db, params.id)) as (TaskRow & { next_action?: string }) | null;
     if (!row) return;
     setTask(row);
     setTitle(row.title);
     setNotes(row.notes);
+    setNextAction(row.next_action ?? '');
     setListId(row.list_id);
     setSectionId(row.section_id);
     setPriority(row.priority);
@@ -334,6 +336,7 @@ export default function TaskScreen() {
     const patch = {
       title,
       notes,
+      next_action: nextAction,
       list_id: listId,
       section_id: sectionId,
       priority,
@@ -475,6 +478,7 @@ export default function TaskScreen() {
       />
       <Field label="Title" value={title} onChangeText={setTitle} paper={paper} />
       <Field label="Notes" value={notes} onChangeText={setNotes} paper={paper} multiline />
+      <Field label="Next step" value={nextAction} onChangeText={setNextAction} paper={paper} placeholder="The next thing to do" />
       <Text style={{ color: paper.muted }}>List</Text>
       <View style={styles.wrap}>
         {lists.map((list) => (

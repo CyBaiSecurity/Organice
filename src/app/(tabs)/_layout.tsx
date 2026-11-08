@@ -6,24 +6,27 @@ import { SymbolView, type SymbolViewProps } from 'expo-symbols';
 import type { BottomTabBarProps } from 'expo-router/build/react-navigation/bottom-tabs';
 import { BottomTabBarHeightCallbackContext } from 'expo-router/build/react-navigation/bottom-tabs/utils/BottomTabBarHeightCallbackContext';
 
-import { DOCK_HEIGHT, PILL_HEIGHT, TAB_CIRCLE, dockBottomInset, glassTint } from '@/theme/dock';
+import { DOCK_HEIGHT, PILL_HEIGHT, dockBottomInset, glassTint } from '@/theme/dock';
 import { PAPER, type Paper } from '@/theme/palette';
 import { useOrganice } from '@/state/organice';
 
-const INNER = 50;
-const LABEL_LIFT = 13;
+const SLOT_CIRCLE = 44;
+const SLOT_INNER = 34;
+const LABEL_LIFT = 8;
 
 const labelText = {
   textAlign: 'center' as const,
   fontSize: 8,
   fontWeight: '700' as const,
-  letterSpacing: 0.4,
+  letterSpacing: 0,
   textTransform: 'uppercase' as const,
   fontFamily: 'Georgia',
+  width: '100%' as const,
 };
 
 const TAB_ICONS: Record<string, SymbolViewProps['name']> = {
   index: { ios: 'square.grid.2x2', android: 'space_dashboard', web: 'space_dashboard' },
+  guide: { ios: 'map', android: 'route', web: 'route' },
   todo: { ios: 'list.bullet', android: 'format_list_bulleted', web: 'format_list_bulleted' },
   tasks: { ios: 'checklist', android: 'checklist', web: 'checklist' },
   ideas: { ios: 'lightbulb', android: 'lightbulb', web: 'lightbulb' },
@@ -50,7 +53,7 @@ function GlassDock({
         bottom: 0,
         zIndex: 2,
         paddingBottom: dockBottom,
-        paddingHorizontal: 16,
+        paddingHorizontal: 8,
       }}>
       <View pointerEvents="box-none" style={{ height: DOCK_HEIGHT }}>
       <View
@@ -106,33 +109,39 @@ function GlassDock({
                 <View style={{ flex: 1, alignItems: 'center' }}>
                   <View
                     style={{
-                      width: TAB_CIRCLE,
-                      height: TAB_CIRCLE,
-                      borderRadius: TAB_CIRCLE / 2,
+                      width: SLOT_CIRCLE,
+                      height: SLOT_CIRCLE,
+                      borderRadius: SLOT_CIRCLE / 2,
                       backgroundColor: paper.bg,
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}>
                     <View
                       style={{
-                        width: INNER,
-                        height: INNER,
-                        borderRadius: INNER / 2,
+                        width: SLOT_INNER,
+                        height: SLOT_INNER,
+                        borderRadius: SLOT_INNER / 2,
                         backgroundColor: paper.text,
                         alignItems: 'center',
                         justifyContent: 'center',
                       }}>
-                      {iconName ? <SymbolView name={iconName} size={22} tintColor={iconColor} weight="regular" /> : null}
+                      {iconName ? <SymbolView name={iconName} size={18} tintColor={iconColor} weight="regular" /> : null}
                     </View>
                   </View>
-                  <Text style={[labelText, { color: labelColor, position: 'absolute', left: 0, right: 0, bottom: LABEL_LIFT }]}>
+                  <Text
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.65}
+                    style={[labelText, { color: labelColor, position: 'absolute', left: 0, right: 0, bottom: LABEL_LIFT }]}>
                     {title}
                   </Text>
                 </View>
               ) : (
                 <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-                  {iconName ? <SymbolView name={iconName} size={22} tintColor={iconColor} weight="regular" /> : null}
-                  <Text style={[labelText, { color: labelColor }]}>{title}</Text>
+                  {iconName ? <SymbolView name={iconName} size={18} tintColor={iconColor} weight="regular" /> : null}
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.65} style={[labelText, { color: labelColor }]}>
+                    {title}
+                  </Text>
                 </View>
               )}
             </Pressable>
@@ -168,6 +177,7 @@ export default function TabLayout() {
         },
       }}>
       <Tabs.Screen name="index" options={{ title: 'Dashboard' }} />
+      <Tabs.Screen name="guide" options={{ title: 'Routine' }} />
       <Tabs.Screen name="todo" options={{ title: 'To-do' }} />
       <Tabs.Screen name="tasks" options={{ title: 'Tasks' }} />
       <Tabs.Screen name="ideas" options={{ title: 'Ideas' }} />

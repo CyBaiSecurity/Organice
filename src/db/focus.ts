@@ -2,8 +2,38 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 
 import { newId } from '../domain/id.ts';
 import { nowIso } from '../domain/time.ts';
+import { updateSettings } from './settings.ts';
 import type { FocusInput, FocusRow } from './types.ts';
 import { emptyToNull, wholeOrNull } from './util.ts';
+
+export type FocusTransition =
+  | {
+      kind: 'start-break';
+      focusId: string;
+      focusEndedAt: string;
+      focusActualSeconds: number;
+      cycleCount: number;
+      breakStartedAt: string;
+      breakPlannedSeconds: number;
+    }
+  | {
+      kind: 'finish-elapsed-break';
+      focusId: string;
+      focusEndedAt: string;
+      focusActualSeconds: number;
+      cycleCount: number;
+      breakStartedAt: string;
+      breakPlannedSeconds: number;
+      breakEndedAt: string;
+      breakActualSeconds: number;
+    }
+  | {
+      kind: 'finish-break';
+      breakId: string;
+      endedAt: string;
+      actualSeconds: number;
+      cycleCount: number;
+    };
 
 const SOUNDS = ['silence', 'rain', 'cafe', 'wind'] as const;
 const MODES = ['countdown', 'countup'] as const;
@@ -72,6 +102,72 @@ export async function deleteSessionsStartedBefore(db: SQLiteDatabase, iso: strin
   await db.runAsync('DELETE FROM focus_session WHERE started_at < ?', iso);
 }
 
+// One transaction closes the running row, updates the cycle, and writes the break.
+// A failure after the focus update rolls all of those writes back.
+export async function applyFocusTransition(
+  db: SQLiteDatabase,
+  transition: FocusTransition,
+): Promise<{ applied: boolean; breakSession: FocusRow | null }> {
+  let applied = false;
+  let breakSession: FocusRow | null = null;
+  await db.withTransactionAsync(async () => {
+    if (transition.kind === 'finish-break') {
+      const current = await runningSession(db);
+      if (!current || current.id !== transition.breakId || current.phase !== 'break' || current.status !== 'running') return;
+      if (!(await completeIfRunning(db, transition.breakId, transition.endedAt, transition.actualSeconds))) return;
+      await updateSettings(db, { focus_cycle_count: transition.cycleCount });
+      applied = true;
+      return;
+    }
+    const current = await runningSession(db);
+    if (!current || current.id !== transition.focusId || current.phase !== 'focus' || current.status !== 'running') return;
+    if (!(await completeIfRunning(db, transition.focusId, transition.focusEndedAt, transition.focusActualSeconds))) return;
+    await updateSettings(db, { focus_cycle_count: transition.cycleCount });
+    const created = await writeSession(
+      db,
+      {
+        mode: 'countdown',
+        phase: 'break',
+        planned_seconds: transition.breakPlannedSeconds,
+        sound: 'silence',
+        task_id: null,
+        habit_id: null,
+        status: 'running',
+        started_at: transition.breakStartedAt,
+      },
+      'running',
+    );
+    if (transition.kind === 'finish-elapsed-break') {
+      if (!(await completeIfRunning(db, created.id, transition.breakEndedAt, transition.breakActualSeconds))) {
+        throw new Error('Focus break was not saved.');
+      }
+    } else {
+      breakSession = created;
+    }
+    applied = true;
+  });
+  return { applied, breakSession };
+}
+
+export async function lastClosedFocusId(db: SQLiteDatabase): Promise<string | null> {
+  return lastClosedId(db, 'focus');
+}
+
+export async function lastClosedBreakId(db: SQLiteDatabase): Promise<string | null> {
+  return lastClosedId(db, 'break');
+}
+
+async function lastClosedId(db: SQLiteDatabase, phase: 'focus' | 'break'): Promise<string | null> {
+  const row = await db.getFirstAsync<{ id: string }>(
+    `SELECT id FROM focus_session
+     WHERE phase = ? AND status != 'running'
+     ORDER BY ended_at DESC, id DESC
+     LIMIT 1`,
+    phase,
+  );
+  return row?.id ?? null;
+}
+
 export async function updateSession(
   db: SQLiteDatabase,
   id: string,
@@ -80,6 +176,19 @@ export async function updateSession(
   const sound = oneOf(patch.sound, SOUNDS, 'The sound must be silence, rain, cafe, or wind.');
   const result = await db.runAsync('UPDATE focus_session SET sound = ? WHERE id = ?', sound, id);
   if (result.changes === 0) throw new Error('Focus session not found.');
+}
+
+async function completeIfRunning(db: SQLiteDatabase, id: string, endedAt: string, actualSeconds: number): Promise<boolean> {
+  const seconds = wholeOrNull(actualSeconds);
+  const result = await db.runAsync(
+    `UPDATE focus_session
+     SET status = 'completed', ended_at = ?, actual_seconds = ?
+     WHERE id = ? AND status = 'running'`,
+    endedAt,
+    seconds,
+    id,
+  );
+  return result.changes === 1;
 }
 
 async function endSession(

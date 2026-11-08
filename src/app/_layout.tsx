@@ -11,7 +11,9 @@ import { migrate } from '@/db/migrate';
 import { getTask, updateTask } from '@/db';
 import { snoozedAt, type SnoozeChoice } from '@/domain/snooze';
 import { PAPER, type Paper } from '@/theme/palette';
+import { FocusRuntimeProvider } from '@/state/focusRuntime';
 import { OrganiceProvider, useOrganice, type SettingsRow } from '@/state/organice';
+import { RoutineReminderProvider } from '@/state/routineReminders';
 import {
   SNOOZE_10,
   SNOOZE_1H,
@@ -25,7 +27,11 @@ export default function RootLayout() {
   return (
     <SQLiteProvider databaseName="organice.db" onInit={migrate}>
       <OrganiceProvider>
-        <ThemedShell />
+        <FocusRuntimeProvider>
+          <RoutineReminderProvider>
+            <ThemedShell />
+          </RoutineReminderProvider>
+        </FocusRuntimeProvider>
       </OrganiceProvider>
     </SQLiteProvider>
   );
@@ -77,6 +83,10 @@ function ThemedShell() {
         <Stack.Screen name="habits" options={{ title: 'Habits' }} />
         <Stack.Screen name="stats" options={{ title: 'Statistics' }} />
         <Stack.Screen name="habit/[id]" options={{ title: 'Habit' }} />
+        <Stack.Screen name="routine" options={{ title: 'Today' }} />
+        <Stack.Screen name="routine-setup" options={{ title: 'Set up your guide' }} />
+        <Stack.Screen name="routine-edit" options={{ title: 'Edit the week' }} />
+        <Stack.Screen name="routine-review" options={{ title: 'Review the week' }} />
       </Stack>
     </ThemeProvider>
   );

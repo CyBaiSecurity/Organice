@@ -433,7 +433,12 @@ export default function DashboardScreen() {
         </View>
       ) : null}
       {clear ? (
-        <Empty title="Today is clear" body="Nothing is due, and no habit is scheduled." color={paper.text} muted={paper.muted} />
+        <Empty
+          title="No tasks, events, or habits"
+          body="No task is due, no event is on the agenda, and no habit is scheduled."
+          color={paper.text}
+          muted={paper.muted}
+        />
       ) : null}
       {clear ? (
         <View style={styles.actions}>

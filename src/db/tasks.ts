@@ -15,6 +15,7 @@ const TASK_COLUMNS = [
   'section_id',
   'title',
   'notes',
+  'next_action',
   'priority',
   'all_day',
   'start_at',
@@ -47,6 +48,7 @@ export async function createTask(db: SQLiteDatabase, input: TaskInput): Promise<
 export async function insertTask(db: SQLiteDatabase, input: TaskInput): Promise<TaskRow> {
   const title = requireText(input.title, LIMITS.title);
   const notes = cleanText(input.notes ?? '', LIMITS.notes);
+  const nextAction = cleanText(input.next_action ?? '', LIMITS.notes);
   const list = await db.getFirstAsync<{ id: string }>('SELECT id FROM list WHERE id = ?', input.list_id);
   if (!list) throw new Error('List not found.');
   await assertRoom(db, "SELECT COUNT(*) AS n FROM task WHERE status = 'open'", LIMITS.openTasks, 'openTasks');
@@ -69,15 +71,16 @@ export async function insertTask(db: SQLiteDatabase, input: TaskInput): Promise<
 
   await db.runAsync(
     `INSERT INTO task (
-       id, list_id, section_id, title, notes, status, priority, all_day, start_at, due_at,
+       id, list_id, section_id, title, notes, next_action, status, priority, all_day, start_at, due_at,
        repeat_kind, repeat_days, repeat_interval_days, repeat_month_day, reminder_offset_minutes,
        notification_id, calendar_id, calendar_event_id, sort, completed_at, created_at, updated_at
-     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     id,
     input.list_id,
     sectionId,
     title,
     notes,
+    nextAction,
     'open',
     requirePriority(input.priority ?? 0),
     allDay,
@@ -108,6 +111,7 @@ export async function updateTask(db: SQLiteDatabase, id: string, patch: TaskPatc
 
   if (hasOwn(patch, 'title')) values.title = requireText(String(patch.title ?? ''), LIMITS.title);
   if (hasOwn(patch, 'notes')) values.notes = cleanText(patch.notes ?? '', LIMITS.notes);
+  if (hasOwn(patch, 'next_action')) values.next_action = cleanText(patch.next_action ?? '', LIMITS.notes);
   if (hasOwn(patch, 'priority')) values.priority = requirePriority(patch.priority ?? 0);
   if (hasOwn(patch, 'reminder_offset_minutes')) {
     values.reminder_offset_minutes = wholeOrNull(patch.reminder_offset_minutes);
@@ -203,6 +207,19 @@ export async function updateTask(db: SQLiteDatabase, id: string, patch: TaskPatc
 export async function deleteTask(db: SQLiteDatabase, id: string): Promise<void> {
   const result = await db.runAsync('DELETE FROM task WHERE id = ?', id);
   if (result.changes === 0) throw new Error('Task not found.');
+}
+
+export type TaskChoice = {
+  id: string;
+  title: string;
+};
+
+export async function listTaskChoices(db: SQLiteDatabase): Promise<TaskChoice[]> {
+  return db.getAllAsync<TaskChoice>(
+    `SELECT id, title FROM task
+     WHERE status = 'open'
+     ORDER BY sort ASC, created_at ASC, id ASC`,
+  );
 }
 
 export async function listTasks(db: SQLiteDatabase, filter: TaskListFilter = {}): Promise<TaskRow[]> {

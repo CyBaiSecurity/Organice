@@ -2,7 +2,7 @@
   "expo": {
     "name": "Organice",
     "slug": "organice",
-    "version": "1.0.3",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "organice",
@@ -14,7 +14,7 @@
     },
     "android": {
       "package": "com.organice.app",
-      "versionCode": 4,
+      "versionCode": 6,
       "adaptiveIcon": {
         "backgroundColor": "#EDEDED",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
