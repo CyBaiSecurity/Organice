@@ -1,28 +1,14 @@
 import { useContext } from 'react';
-import { Easing, Pressable, Text, View, useColorScheme, type ColorValue } from 'react-native';
+import { Easing, Pressable, StyleSheet, Text, View, useColorScheme, useWindowDimensions, type ColorValue } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Tabs } from 'expo-router/js-tabs';
 import { SymbolView, type SymbolViewProps } from 'expo-symbols';
 import type { BottomTabBarProps } from 'expo-router/build/react-navigation/bottom-tabs';
 import { BottomTabBarHeightCallbackContext } from 'expo-router/build/react-navigation/bottom-tabs/utils/BottomTabBarHeightCallbackContext';
 
-import { DOCK_HEIGHT, PILL_HEIGHT, dockBottomInset, glassTint } from '@/theme/dock';
+import { dockBottomInset, dockHeight } from '@/theme/dock';
 import { PAPER, type Paper } from '@/theme/palette';
 import { useOrganice } from '@/state/organice';
-
-const SLOT_CIRCLE = 44;
-const SLOT_INNER = 34;
-const LABEL_LIFT = 8;
-
-const labelText = {
-  textAlign: 'center' as const,
-  fontSize: 8,
-  fontWeight: '700' as const,
-  letterSpacing: 0,
-  textTransform: 'uppercase' as const,
-  fontFamily: 'Georgia',
-  width: '100%' as const,
-};
 
 const TAB_ICONS: Record<string, SymbolViewProps['name']> = {
   index: { ios: 'square.grid.2x2', android: 'space_dashboard', web: 'space_dashboard' },
@@ -33,6 +19,11 @@ const TAB_ICONS: Record<string, SymbolViewProps['name']> = {
   calendar: { ios: 'calendar', android: 'calendar_month', web: 'calendar_month' },
 };
 
+function visibleLabel(title: string | undefined, tabBarLabel: unknown, routeName: string): string {
+  if (typeof tabBarLabel === 'string' && tabBarLabel.trim().length > 0) return tabBarLabel;
+  return title ?? routeName;
+}
+
 function GlassDock({
   state,
   descriptors,
@@ -41,52 +32,33 @@ function GlassDock({
   dockBottom,
 }: BottomTabBarProps & { paper: Paper; dockBottom: number }) {
   const reportHeight = useContext(BottomTabBarHeightCallbackContext);
+  const { fontScale } = useWindowDimensions();
+  const barHeight = dockHeight(fontScale);
+  const labelHeight = 28 * fontScale;
 
   return (
     <View
       pointerEvents="box-none"
       onLayout={(event) => reportHeight?.(event.nativeEvent.layout.height)}
-      style={{
-        position: 'absolute',
-        left: 0,
-        right: 0,
-        bottom: 0,
-        zIndex: 2,
-        paddingBottom: dockBottom,
-        paddingHorizontal: 8,
-      }}>
-      <View pointerEvents="box-none" style={{ height: DOCK_HEIGHT }}>
-      <View
-        pointerEvents="none"
-        style={{
-          position: 'absolute',
-          left: 0,
-          right: 0,
-          bottom: 0,
-          height: PILL_HEIGHT,
-          borderRadius: PILL_HEIGHT / 2,
-          backgroundColor: glassTint(paper.surface),
-          borderWidth: 1,
-          borderTopWidth: 1,
-          borderRightWidth: 1,
-          borderBottomWidth: 1,
-          borderLeftWidth: 1,
-          borderColor: paper.text,
+      style={[
+        styles.bar,
+        {
+          paddingBottom: dockBottom,
+          backgroundColor: paper.surface,
           borderTopColor: paper.text,
           borderRightColor: paper.text,
           borderBottomColor: paper.text,
           borderLeftColor: paper.text,
-          elevation: 0,
-        }}
-      />
-      <View pointerEvents="box-none" style={{ flex: 1, flexDirection: 'row', alignItems: 'flex-end' }}>
+        },
+      ]}>
+      <View pointerEvents="box-none" style={[styles.slots, { height: barHeight }]}>
         {state.routes.map((route, index) => {
           const focused = state.index === index;
           const { options } = descriptors[route.key];
-          const title = options.title ?? route.name;
+          const shown = visibleLabel(options.title, options.tabBarLabel, route.name);
+          const accessible = options.tabBarAccessibilityLabel ?? options.title ?? route.name;
           const iconName = TAB_ICONS[route.name];
-          const iconColor: ColorValue = focused ? paper.bg : paper.text;
-          const labelColor = paper.text;
+          const iconColor: ColorValue = paper.text;
           const onPress = () => {
             const event = navigation.emit({
               type: 'tabPress',
@@ -102,52 +74,22 @@ function GlassDock({
               key={route.key}
               accessibilityRole="tab"
               accessibilityState={{ selected: focused }}
-              accessibilityLabel={title}
+              accessibilityLabel={accessible}
               onPress={onPress}
-              style={{ flex: 1, height: focused ? DOCK_HEIGHT : PILL_HEIGHT }}>
-              {focused ? (
-                <View style={{ flex: 1, alignItems: 'center' }}>
-                  <View
-                    style={{
-                      width: SLOT_CIRCLE,
-                      height: SLOT_CIRCLE,
-                      borderRadius: SLOT_CIRCLE / 2,
-                      backgroundColor: paper.bg,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}>
-                    <View
-                      style={{
-                        width: SLOT_INNER,
-                        height: SLOT_INNER,
-                        borderRadius: SLOT_INNER / 2,
-                        backgroundColor: paper.text,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}>
-                      {iconName ? <SymbolView name={iconName} size={18} tintColor={iconColor} weight="regular" /> : null}
-                    </View>
-                  </View>
+              style={[styles.slot, { height: barHeight }]}>
+              <View style={[styles.slotFill, focused ? { backgroundColor: paper.bg } : null]}>
+                {iconName ? <SymbolView name={iconName} size={20} tintColor={iconColor} weight="regular" /> : null}
+                <View style={[styles.labelSlot, { height: labelHeight }]}>
                   <Text
-                    numberOfLines={1}
-                    adjustsFontSizeToFit
-                    minimumFontScale={0.65}
-                    style={[labelText, { color: labelColor, position: 'absolute', left: 0, right: 0, bottom: LABEL_LIFT }]}>
-                    {title}
+                    numberOfLines={2}
+                    style={[styles.label, { color: paper.text, fontWeight: focused ? '600' : '400' }]}>
+                    {shown}
                   </Text>
                 </View>
-              ) : (
-                <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-                  {iconName ? <SymbolView name={iconName} size={18} tintColor={iconColor} weight="regular" /> : null}
-                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.65} style={[labelText, { color: labelColor }]}>
-                    {title}
-                  </Text>
-                </View>
-              )}
+              </View>
             </Pressable>
           );
         })}
-      </View>
       </View>
     </View>
   );
@@ -165,24 +107,54 @@ export default function TabLayout() {
   return (
     <View style={{ flex: 1, backgroundColor: paper.bg }}>
       <Tabs
-      tabBar={(props) => <GlassDock {...props} paper={paper} dockBottom={dockBottom} />}
-      screenOptions={{
-        headerShown: false,
-        sceneStyle: { backgroundColor: 'transparent' },
-        tabBarStyle: { backgroundColor: 'transparent', borderTopWidth: 0, elevation: 0 },
-        animation: 'fade',
-        transitionSpec: {
-          animation: 'timing',
-          config: { duration: 260, easing: Easing.inOut(Easing.ease) },
-        },
-      }}>
-      <Tabs.Screen name="index" options={{ title: 'Dashboard' }} />
-      <Tabs.Screen name="guide" options={{ title: 'Routine' }} />
-      <Tabs.Screen name="todo" options={{ title: 'To-do' }} />
-      <Tabs.Screen name="tasks" options={{ title: 'Tasks' }} />
-      <Tabs.Screen name="ideas" options={{ title: 'Ideas' }} />
-      <Tabs.Screen name="calendar" options={{ title: 'Calendar' }} />
+        tabBar={(props) => <GlassDock {...props} paper={paper} dockBottom={dockBottom} />}
+        screenOptions={{
+          headerShown: false,
+          sceneStyle: { backgroundColor: 'transparent' },
+          tabBarStyle: { backgroundColor: 'transparent', borderTopWidth: 0, elevation: 0 },
+          animation: 'fade',
+          transitionSpec: {
+            animation: 'timing',
+            config: { duration: 260, easing: Easing.inOut(Easing.ease) },
+          },
+        }}>
+        <Tabs.Screen
+          name="index"
+          options={{ title: 'Dashboard', tabBarLabel: 'Home', tabBarAccessibilityLabel: 'Dashboard' }}
+        />
+        <Tabs.Screen name="guide" options={{ title: 'Routine' }} />
+        <Tabs.Screen name="todo" options={{ title: 'To-do' }} />
+        <Tabs.Screen name="tasks" options={{ title: 'Tasks' }} />
+        <Tabs.Screen name="ideas" options={{ title: 'Ideas' }} />
+        <Tabs.Screen name="calendar" options={{ title: 'Calendar' }} />
       </Tabs>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  bar: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 2,
+    borderTopWidth: 1,
+    borderRightWidth: 0,
+    borderBottomWidth: 0,
+    borderLeftWidth: 0,
+    elevation: 0,
+  },
+  slots: { flexDirection: 'row', alignItems: 'stretch' },
+  slot: { flex: 1, paddingHorizontal: 1, paddingVertical: 6 },
+  slotFill: {
+    flex: 1,
+    minHeight: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 2,
+    borderRadius: 12,
+  },
+  labelSlot: { width: '100%', justifyContent: 'flex-start' },
+  label: { fontSize: 11, lineHeight: 14, textAlign: 'center', width: '100%' },
+});

@@ -176,7 +176,7 @@ Low is green. Medium and high have their own colors. A finished task is struck t
 - **Create habit**: a name, yes-or-no or count, the weekdays it is due, and for a count habit a daily goal and a unit such as pages.
 - The Check control shows up only on a due day.
 - Open a habit for the month. Tap a past due day to check it. Long-press a count to lower it. Future days cannot be checked.
-- Optional reminder at a 24-hour time, such as 07:30, on the chosen weekdays.
+- Optional reminder at a time such as 7:30 AM, on the chosen weekdays.
 - **Archive habit** hides it from today and keeps the check-ins. **Restore habit** brings it back.
 - **Delete** asks, then removes the habit and its check-ins.
 - **Statistics** shows the last 8 weeks. Tap a habit for the week and weekday bars. **Export CSV** shares that record.
@@ -184,7 +184,7 @@ Low is green. Medium and high have their own colors. A finished task is struck t
 ### ⚙️ Settings
 
 - Appearance: System, Light, or Dark.
-- Working hours, as 24-hour times. The dashboard's main list stays inside that window.
+- Working hours, such as 8:00 AM–10:00 PM. The dashboard's main list stays inside that window.
 - Focus length, short break, long break, and how many focus sessions happen before a long break.
 - The default list for a new task.
 - The writable calendar on this phone. That is where "Also show on the phone calendar" writes.

@@ -7,6 +7,7 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { Button, InkFooter, InkHeader, Muted, PageScroll, RowButton, Sheet, Star } from '@/components/ui';
 import { completeTask, getLists, listTasks } from '@/db';
 import { nowIso } from '@/domain/time';
+import { formatTime } from '@/state/clock';
 import { syncTaskSideEffects, type TaskRow } from '@/state/effects';
 import { useOrganice } from '@/state/organice';
 import { PAPER, taskInk } from '@/theme/palette';
@@ -16,7 +17,7 @@ function dueText(task: TaskRow): string | null {
   if (task.all_day === 1) return task.due_at.slice(0, 10);
   const due = new Date(task.due_at);
   if (Number.isNaN(due.getTime())) return null;
-  return due.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+  return `${due.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}, ${formatTime(due)}`;
 }
 
 function byDue(left: TaskRow, right: TaskRow): number {

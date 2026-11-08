@@ -2,11 +2,11 @@
 
 The guide is a plan for the day. It is not a task list, and nothing on it becomes overdue.
 
-Times are Philippine time. The guide does not add events to the phone calendar.
+Times are Philippine time and use AM/PM. The guide does not add events to the phone calendar.
 
 ## Open Routine
 
-Routine is its own tab. Open it to see the day. The dashboard no longer holds the whole guide.
+Routine is its own tab. Open it to see the day. Home no longer holds the whole guide.
 
 An alert saved by an older version still opens the previous address. That address brings you to Routine.
 
@@ -21,7 +21,7 @@ Saving copies the week onto this phone. You can edit or delete any part of it. A
 
 ## Today
 
-Routine shows the day as a timeline. A row keeps the time and the title. Tap the row to read the full instructions. What is happening now, and what is next, stays visible above the list. An optional work suggestion does not fill the day. A meeting without a confirmed time is not shown as an appointment. Its instructions are the times you can still propose.
+Routine leads with the current activity and its instructions. **Up next** is smaller beneath it. Your chosen task and its main action come next. Choose **Full day** to read the remaining plan and earlier activities; tap a row for its complete instructions. The current activity stays at the top instead of appearing twice. An optional work suggestion does not fill the day. A meeting without a confirmed time is not shown as an appointment. Its instructions are the times you can still propose.
 
 Choose task, free period, and focus sit with the selected task. Adjust today holds no classes, home now, and home late. Alerts have their own details.
 
@@ -55,12 +55,14 @@ Alerts are off until you turn one on for a part of the day that has a fixed time
 
 ## Sunday review
 
-**Review the week** on Routine is available any day.
+**Review the week** on Routine is available any day. After 5:00 PM on Sunday, **Review this week** carries a reminder that the review is ready.
 
 The review has three notes: what got finished, what needs attention, and what felt too crowded. You write those yourself. Nothing on the review is counted for you. It also lets you choose an open task for the Monday after that week, and it shows that Monday’s date. The task list stays closed until you open it. Saving the notes alone leaves Monday’s task as it is, including a task that is now finished or deleted. Choose a task, or choose **Don’t assign a task**, when you want to change Monday.
 
 Reviews are Monday through Sunday. They are separate from habit statistics.
 
-## Not checked on a phone
+## Android checks
 
-The times stored with the source week, how the task list pages in memory, and this layout were not tried on a phone. This is a source prerelease.
+The code6 prerelease was installed and checked on Android: all six tabs, routine details, setup preview, editor wheel and scrolling, review dates, and Focus continuity. Existing data was preserved. Save on the review is reachable after dismissing the keyboard. iOS and long-running memory/alert delivery remain unverified.
+
+The hierarchy, navigation-label and AM/PM revision is implemented in code7 and installed over the existing app. Its screen check is waiting for the phone to be unlocked. The code6 checks above do not validate the revised layout or large-text navigation.

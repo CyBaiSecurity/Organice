@@ -118,7 +118,7 @@ export default function SettingsScreen() {
     const workStart = parseClock(start);
     const workEnd = parseClock(end);
     if (workStart == null || workEnd == null || workEnd <= workStart) {
-      Alert.alert('Working hours', 'Use 24-hour times, and make the end later than the start.');
+      Alert.alert('Working hours', 'Use a time like 8:00 AM, and make the end later than the start.');
       return;
     }
     const focusMinutes = clamp(Number(focus), LIMITS.lengthMin, LIMITS.lengthMax, 25);
@@ -150,8 +150,8 @@ export default function SettingsScreen() {
           />
         ))}
       </View>
-      <Field label="Working hours start" value={start} onChangeText={setStart} paper={paper} placeholder="08:00" />
-      <Field label="Working hours end" value={end} onChangeText={setEnd} paper={paper} placeholder="22:00" />
+      <Field label="Working hours start" value={start} onChangeText={setStart} paper={paper} placeholder="8:00 AM" />
+      <Field label="Working hours end" value={end} onChangeText={setEnd} paper={paper} placeholder="10:00 PM" />
       <Field label="Focus minutes" value={focus} onChangeText={setFocus} paper={paper} />
       <Field label="Short break (minutes)" value={shortBreak} onChangeText={setShortBreak} paper={paper} />
       <Field label="Long break (minutes)" value={longBreak} onChangeText={setLongBreak} paper={paper} />

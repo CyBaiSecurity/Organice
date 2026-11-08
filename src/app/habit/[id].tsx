@@ -99,7 +99,7 @@ export default function HabitScreen() {
     if (!habit) return;
     const minute = reminder.trim() ? parseClock(reminder) : null;
     if (reminder.trim() && minute == null) {
-      Alert.alert('Reminder', 'Use a 24-hour time, such as 07:30.');
+      Alert.alert('Reminder', 'Use a time like 7:30 AM.');
       return;
     }
     const weekdays = habit.weekdays.split(',').map(Number).filter((day) => day >= 1 && day <= 7);
@@ -171,7 +171,7 @@ export default function HabitScreen() {
           </View>
         ))}
       </View>
-      <Field label="Reminder time (24-hour, optional)" value={reminder} onChangeText={setReminder} paper={paper} placeholder="07:30" />
+      <Field label="Reminder time (optional)" value={reminder} onChangeText={setReminder} paper={paper} placeholder="7:30 AM" />
       <Button label="Save reminder" color={paper.text} textColor={paper.bg} onPress={() => saveReminder().catch((error) => Alert.alert('Reminder', error instanceof Error ? error.message : 'Could not schedule.'))} />
       <Muted color={paper.muted}>Archive hides it from today.</Muted>
       <Button

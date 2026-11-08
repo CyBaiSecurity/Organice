@@ -33,54 +33,85 @@ function TimelineBody({
   paper: Paper;
   secondary: string;
 }) {
+  const [dayOpen, setDayOpen] = useState(false);
   const [openKey, setOpenKey] = useState<string | null>(null);
   const [showPast, setShowPast] = useState<boolean | null>(null);
-  const rows = plan.occurrences.map((item, index) => ({
-    item,
-    key: `${item.blockId ?? 'open'}-${index}`,
-    now: guideOn && sameOccurrence(plan.current, item),
-    next: guideOn && sameOccurrence(plan.next, item) && !sameOccurrence(plan.current, item),
-  }));
-  const past = rows.filter((row) => !row.now && occurrenceIsEarlier(plan, row.item));
-  const upcoming = rows.filter((row) => row.now || !occurrenceIsEarlier(plan, row.item));
+  const live = guideOn && plan.minute >= 0 && plan.minute < 1440;
+  const rows = plan.occurrences.flatMap((item, index) => {
+    const now = live && sameOccurrence(plan.current, item);
+    if (now) return [];
+    return [
+      {
+        item,
+        key: `${item.blockId ?? 'open'}-${index}`,
+        next: live && sameOccurrence(plan.next, item),
+      },
+    ];
+  });
+  const past = rows.filter((row) => occurrenceIsEarlier(plan, row.item));
+  const upcoming = rows.filter((row) => !occurrenceIsEarlier(plan, row.item));
   const pastOpen = showPast ?? upcoming.length === 0;
+  const dayLabel = dayOpen ? 'Hide full day' : 'Full day';
+
+  if (plan.occurrences.length === 0) {
+    return (
+      <View style={[styles.section, { borderTopColor: paper.text }]}>
+        <Text style={[styles.secondary, { color: secondary }]}>Nothing is on the guide for this day.</Text>
+      </View>
+    );
+  }
 
   return (
-    <View style={styles.stack}>
-      <Text style={[styles.heading, { color: paper.text }]}>Day</Text>
-      {upcoming.length === 0 && past.length === 0 ? (
-        <Text style={[styles.secondary, { color: secondary }]}>Nothing is on the guide for this day.</Text>
-      ) : null}
-      {upcoming.map((row) => (
-        <TimelineRow
-          key={row.key}
-          row={row}
-          open={openKey === row.key}
-          paper={paper}
-          secondary={secondary}
-          onPress={() => setOpenKey((current) => (current === row.key ? null : row.key))}
-        />
-      ))}
-      {past.length > 0 ? (
+    <View style={[styles.section, { borderTopColor: paper.text }]}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityState={{ expanded: dayOpen }}
+        accessibilityLabel={dayLabel}
+        onPress={() => setDayOpen((open) => !open)}
+        style={styles.hit}>
+        <Text style={[styles.body, { color: paper.text }]}>{dayLabel}</Text>
+        <Text style={[styles.mark, { color: paper.text }]}>{dayOpen ? '−' : '+'}</Text>
+      </Pressable>
+      {dayOpen ? (
         <View style={styles.stack}>
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => setShowPast(!pastOpen)}
-            style={styles.hit}>
-            <Text style={[styles.body, { color: paper.text }]}>{pastOpen ? 'Hide earlier' : `Earlier (${past.length})`}</Text>
-          </Pressable>
-          {pastOpen
-            ? past.map((row) => (
-                <TimelineRow
-                  key={row.key}
-                  row={row}
-                  open={openKey === row.key}
-                  paper={paper}
-                  secondary={secondary}
-                  onPress={() => setOpenKey((current) => (current === row.key ? null : row.key))}
-                />
-              ))
-            : null}
+          {rows.length === 0 ? (
+            <Text style={[styles.secondary, { color: secondary }]}>Nothing else is on the guide for this day.</Text>
+          ) : null}
+          {upcoming.map((row) => (
+            <TimelineRow
+              key={row.key}
+              row={row}
+              open={openKey === row.key}
+              paper={paper}
+              secondary={secondary}
+              onPress={() => setOpenKey((current) => (current === row.key ? null : row.key))}
+            />
+          ))}
+          {past.length > 0 ? (
+            <View style={styles.stack}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityState={{ expanded: pastOpen }}
+                accessibilityLabel={pastOpen ? 'Hide earlier' : `Earlier, ${past.length}`}
+                onPress={() => setShowPast(!pastOpen)}
+                style={styles.hit}>
+                <Text style={[styles.body, { color: paper.text }]}>{pastOpen ? 'Hide earlier' : `Earlier (${past.length})`}</Text>
+                <Text style={[styles.mark, { color: paper.text }]}>{pastOpen ? '−' : '+'}</Text>
+              </Pressable>
+              {pastOpen
+                ? past.map((row) => (
+                    <TimelineRow
+                      key={row.key}
+                      row={row}
+                      open={openKey === row.key}
+                      paper={paper}
+                      secondary={secondary}
+                      onPress={() => setOpenKey((current) => (current === row.key ? null : row.key))}
+                    />
+                  ))
+                : null}
+            </View>
+          ) : null}
         </View>
       ) : null}
     </View>
@@ -94,7 +125,7 @@ function TimelineRow({
   secondary,
   onPress,
 }: {
-  row: { item: Occurrence; key: string; now: boolean; next: boolean };
+  row: { item: Occurrence; key: string; next: boolean };
   open: boolean;
   paper: Paper;
   secondary: string;
@@ -102,6 +133,9 @@ function TimelineRow({
 }) {
   const item = row.item;
   const unconfirmed = item.role === 'unconfirmed-meeting';
+  const schedule = occurrenceSchedule(item);
+  const start = timeColumn(item);
+  const showSchedule = schedule !== start && !unconfirmed;
   return (
     <View style={styles.rowBlock}>
       <Pressable
@@ -110,11 +144,13 @@ function TimelineRow({
         accessibilityLabel={`${open ? 'Hide' : 'Show'} details for ${item.title}`}
         onPress={onPress}
         style={styles.row}>
-        <Text style={[styles.time, { color: secondary }]}>{timeColumn(item)}</Text>
+        <Text numberOfLines={2} style={[styles.time, { color: secondary }]}>
+          {start}
+        </Text>
         <View style={styles.titleCol}>
           <Text style={[styles.body, { color: paper.text }]}>{item.title}</Text>
-          {row.now ? <Text style={[styles.secondary, { color: paper.text }]}>Now</Text> : null}
-          {row.next && !row.now ? <Text style={[styles.secondary, { color: secondary }]}>Next</Text> : null}
+          {showSchedule ? <Text style={[styles.secondary, { color: secondary }]}>{schedule}</Text> : null}
+          {row.next ? <Text style={[styles.secondary, { color: secondary }]}>Next</Text> : null}
           {unconfirmed ? <Text style={[styles.secondary, { color: secondary }]}>Needs a confirmed time</Text> : null}
           {!open && item.instructions ? <Text style={[styles.secondary, { color: secondary }]}>Instructions</Text> : null}
         </View>
@@ -122,7 +158,7 @@ function TimelineRow({
       </Pressable>
       {open ? (
         <View style={styles.detail}>
-          <Text style={[styles.secondary, { color: secondary }]}>{occurrenceSchedule(item)}</Text>
+          <Text style={[styles.secondary, { color: secondary }]}>{schedule}</Text>
           {item.instructions ? <Text style={[styles.body, { color: paper.text }]}>{item.instructions}</Text> : null}
         </View>
       ) : null}
@@ -137,15 +173,23 @@ function timeColumn(item: Occurrence): string {
 }
 
 const styles = StyleSheet.create({
+  section: { gap: 8, paddingTop: 16, borderTopWidth: StyleSheet.hairlineWidth },
   stack: { gap: 4 },
   rowBlock: { gap: 4 },
-  row: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 12 },
-  time: { width: 64, fontSize: 13, lineHeight: 18, fontVariant: ['tabular-nums'], fontFamily: 'Georgia' },
-  titleCol: { flex: 1, gap: 2 },
-  mark: { width: 24, fontSize: 16, lineHeight: 20, textAlign: 'center', fontFamily: 'Georgia' },
-  detail: { paddingLeft: 76, gap: 4, paddingBottom: 6 },
-  heading: { fontFamily: 'Georgia', fontSize: 20, lineHeight: 26 },
-  body: { fontFamily: 'Georgia', fontSize: 16, lineHeight: 22 },
-  secondary: { fontFamily: 'Georgia', fontSize: 13, lineHeight: 18 },
-  hit: { minHeight: 44, justifyContent: 'center' },
+  row: { minHeight: 44, flexDirection: 'row', alignItems: 'flex-start', gap: 10, paddingVertical: 8 },
+  time: {
+    width: 96,
+    flexShrink: 0,
+    paddingTop: 2,
+    fontSize: 13,
+    lineHeight: 18,
+    fontVariant: ['tabular-nums'],
+    fontFamily: 'Georgia',
+  },
+  titleCol: { flex: 1, minWidth: 0, gap: 2 },
+  mark: { width: 24, flexShrink: 0, paddingTop: 2, fontSize: 16, lineHeight: 20, textAlign: 'center', fontFamily: 'Georgia' },
+  detail: { gap: 4, paddingBottom: 6 },
+  body: { fontFamily: 'Georgia', fontSize: 16, lineHeight: 22, textAlign: 'left' },
+  secondary: { fontFamily: 'Georgia', fontSize: 13, lineHeight: 18, textAlign: 'left' },
+  hit: { minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
 });

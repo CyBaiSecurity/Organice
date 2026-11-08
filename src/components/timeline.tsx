@@ -14,6 +14,7 @@ import {
   type DayBlock,
 } from '@/domain/timelineLayout';
 import { atLocalMinutes, localDateKey, minutesOfDay, startOfLocalDay, weekdayShort } from '@/domain/time';
+import { formatTime } from '@/state/clock';
 import { type TaskRow } from '@/state/effects';
 import { taskInk, type Paper } from '@/theme/palette';
 
@@ -268,10 +269,10 @@ function TaskBlock({
     <View
       {...moveResponder.panHandlers}
       accessibilityRole="button"
-      accessibilityLabel={`${task.title}, ${formatClock(start)} to ${formatClock(end)}`}
+      accessibilityLabel={`${task.title}, ${formatTime(start)} to ${formatTime(end)}`}
       style={[styles.block, task.status === 'completed' ? styles.dimmed : null, { top, left, width, height, backgroundColor: fill }]}>
       <Text numberOfLines={height >= 48 ? 2 : 1} style={[styles.blockTitle, { color: label }]}>{task.title}</Text>
-      {height >= 48 ? <Text numberOfLines={1} style={[styles.blockTime, { color: label }]}>{formatClock(start)}–{formatClock(end)}</Text> : null}
+      {height >= 48 ? <Text numberOfLines={1} style={[styles.blockTime, { color: label }]}>{formatTime(start)}–{formatTime(end)}</Text> : null}
       <View
         {...endResponder.panHandlers}
         accessibilityRole="adjustable"
@@ -328,11 +329,7 @@ function dueLabel(task: TaskRow): string {
   if (task.all_day === 1) return 'All day';
   const due = new Date(task.due_at);
   if (Number.isNaN(due.getTime())) return 'Deadline';
-  return formatClock(due);
-}
-
-function formatClock(date: Date): string {
-  return date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+  return formatTime(due);
 }
 
 function onBlockText(fill: string): string {

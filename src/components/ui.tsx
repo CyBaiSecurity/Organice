@@ -148,9 +148,10 @@ export function PageScroll({
   children: ReactNode;
 }) {
   const insets = useSafeAreaInsets();
+  const { fontScale } = useWindowDimensions();
   // The dock is drawn on top of the screen. This padding is the part of the
   // screen the sheet is not allowed to enter.
-  const dock = dockClearance(insets.bottom);
+  const dock = dockClearance(insets.bottom, fontScale);
   const [band, setBand] = useState(0);
 
   return (

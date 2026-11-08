@@ -245,7 +245,7 @@ export function DraftForm({
     const endText = draft.end.trim();
     const endMinute = endText === '' ? null : parseClock(endText);
     if (endText !== '' && endMinute == null) {
-      onError('End must be a time like 18:30.');
+      onError('End must be a time like 6:30 PM.');
       return null;
     }
     try {
@@ -328,7 +328,7 @@ export function DraftForm({
     const endText = draft.end.trim();
     const endMinute = endText === '' ? null : parseClock(endText);
     if (endText !== '' && endMinute == null) {
-      onError('End must be a time like 18:30.');
+      onError('End must be a time like 6:30 PM.');
       return;
     }
     try {
