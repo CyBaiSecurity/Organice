@@ -36,7 +36,7 @@ Own: `src/state/clock.ts`, `src/state/routine.tsx` display helpers only, `src/ap
 - [x] Run `npm test`, `npm run typecheck` and `git diff --check` independently.
 - [x] Build the corrected signed ARM64 APK as versionCode8 under the existing 5 GiB hard memory limit, no build swap, one worker. Code7's navigation redesign was rejected and must not be published. Preserve the published rc.1 tag; replace the unpublished rc.2 draft binary after native acceptance.
 - [x] Install over the existing app with data preserved; inspect actual Routine hierarchy, full-day disclosure, all six labels, time editing and AM/PM, Focus continuity, keyboard/back paths and a bounded memory sample. The phone check used the default text size. Larger-text navigation changes are out of scope because the original dock must stay as it is. Leave Organice open.
-- [ ] Record native results and limits, update GitHub prerelease/Brain, then close the root task. A short run cannot prove the absence of all memory leaks.
+- [x] Record native results and limits, update GitHub prerelease/Brain, then close the root task. A short run cannot prove the absence of all memory leaks.
 
 ## Review focus
 
