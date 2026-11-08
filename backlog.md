@@ -1,11 +1,11 @@
 # Backlog
 
 ## In flight
-- [ ] organice-clock-12h - Use 12-hour AM/PM displays with compatible time inputs (since 2026-11-08)
-- [ ] organice-routine-hierarchy - Clarify Routine hierarchy and align navigation labels (since 2026-11-08)
+- [ ] organice-routine-hierarchy - Clarify Routine hierarchy while preserving the original navigation (since 2026-11-08)
 - [ ] organice-routine - Implement the approved daily routine guide with Grok workers (since 2026-11-08)
 ## Queued
 ## Done
+- [x] organice-clock-12h - Use 12-hour AM/PM displays with compatible time inputs (done 2026-11-09)
 - [x] organice-routine-readability - Clean up routine setup, editor, review and task selection (done 2026-11-08)
 - [x] organice-routine-navigation - Add a dedicated Routine tab and a scannable daily overview (done 2026-11-08)
 - [x] organice-routine-reminders - Implement opt-in seven-day routine reminder reconciliation (done 2026-11-08)

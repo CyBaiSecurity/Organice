@@ -14,7 +14,7 @@
     },
     "android": {
       "package": "com.organice.app",
-      "versionCode": 7,
+      "versionCode": 8,
       "adaptiveIcon": {
         "backgroundColor": "#EDEDED",
         "foregroundImage": "./assets/images/android-icon-foreground.png",

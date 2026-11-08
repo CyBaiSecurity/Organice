@@ -6,7 +6,7 @@ Times are Philippine time and use AM/PM. The guide does not add events to the ph
 
 ## Open Routine
 
-Routine is its own tab. Open it to see the day. Home no longer holds the whole guide.
+Routine is its own tab. Open it to see the day. Dashboard no longer holds the whole guide. The original navigation design is retained.
 
 An alert saved by an older version still opens the previous address. That address brings you to Routine.
 
@@ -65,4 +65,4 @@ Reviews are Monday through Sunday. They are separate from habit statistics.
 
 The code6 prerelease was installed and checked on Android: all six tabs, routine details, setup preview, editor wheel and scrolling, review dates, and Focus continuity. Existing data was preserved. Save on the review is reachable after dismissing the keyboard. iOS and long-running memory/alert delivery remain unverified.
 
-The hierarchy, navigation-label and AM/PM revision is implemented in code7 and installed over the existing app. Its screen check is waiting for the phone to be unlocked. The code6 checks above do not validate the revised layout or large-text navigation.
+Code8 retains the original navigation and adds the revised Routine hierarchy and AM/PM display. On Android, the daily view, instructions, editor wheel, review dates and Focus continuity were checked with existing data retained. A To-do deadline read Nov 9, 11:59 PM, and working hours read 8:00 AM to 11:59 PM. No task or settings change was saved during that check. Short samples from the same app process do not prove the absence of memory leaks. iOS and long-running alert delivery remain unverified.

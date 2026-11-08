@@ -6,11 +6,11 @@ Requested during Android review on 2026-11-08. This extends the approved routine
 
 The default Routine view must answer “What should I do now?” first. The current activity owns the largest type and its essential instructions. The next activity is a quiet row. Task selection and Focus form one compact section with one primary action. The full daily plan stays available on demand rather than repeating the current activity immediately below it. Date controls, daily adjustments, week editing, review and alerts have successively lower visual weight. Active changes and real errors remain visible. Keep the existing ink-and-paper identity without new assets, dependencies or animation.
 
-Navigation keeps all six destinations and the distinct Routine icon. Align every icon and label on the same baseline; use readable sentence-case labels instead of small bold uppercase text and the raised selected circle. The Dashboard can display the shorter label Home while retaining its route and accessible destination name.
+On 2026-11-09, the user explicitly rejected the navigation redesign and instructed that it must never change. Restore the exact original floating pill, raised selected icon, labels and spacing from `debac675`, including the Routine destination. This overrides all earlier navigation styling and scaling proposals in this plan. Routine page content and AM/PM changes remain in scope.
 
 All app-generated clock times use explicit 12-hour AM/PM. Stored minutes, timestamps, timer durations and source/user instruction text keep their existing meaning. Legacy 24-hour input remains readable so existing drafts and wheel values do not break.
 
-## Task 1: Routine hierarchy and dock
+## Task 1: Routine hierarchy with original navigation preserved
 
 Own: `src/components/routinePage.tsx`, `src/components/routineTimeline.tsx`, `src/components/routineGuide.tsx`, `src/app/(tabs)/guide.tsx`, `src/app/(tabs)/_layout.tsx`, `src/theme/dock.ts`.
 
@@ -18,7 +18,7 @@ Own: `src/components/routinePage.tsx`, `src/components/routineTimeline.tsx`, `sr
 - [ ] Keep current and next guidance visible, then show a compact task section. Use local sentence-case actions. Free period and task clearing remain available as secondary actions. Preserve explicit carryover, missing/completed selections, task next steps and Focus preselection without auto-start.
 - [ ] Make the full day a clearly labelled disclosure. Every instruction and unconfirmed meeting remains available. Keep today/history/future context accurate and reset disclosures on a date change.
 - [ ] Place adjustments and week management below the main guidance. Retain Sunday-after-5-PM review emphasis, individual/combined undo, actual alert counts and visible failures, guide-off and first-setup states.
-- [ ] Align six navigation slots with 44-point touch areas, readable sentence-case labels, a restrained selected state, safe-area clearance and no moving label baseline. Do not change route names or other tab content.
+- [ ] Preserve the exact original six-destination dock design, labels and clearance. Do not alter navigation while cleaning up the Routine page.
 - [ ] Run typecheck. Visual-only edits need actual rendered QA, not source-string tests.
 
 ## Task 2: 12-hour display and compatibility
@@ -32,12 +32,12 @@ Own: `src/state/clock.ts`, `src/state/routine.tsx` display helpers only, `src/ap
 
 ## Acceptance owned by Codex
 
-- [ ] Inspect both diffs and obtain one bounded independent Grok 4.7 review. Verify midnight/noon, AM/PM wheel round trips and old inputs.
-- [ ] Run `npm test`, `npm run typecheck` and `git diff --check` independently.
-- [ ] Build one signed incremental ARM64 APK as versionCode7 under the existing 5 GiB hard memory limit, no build swap, one worker. Preserve the published rc.1 tag; publish the new binary as rc.2 after native acceptance.
-- [ ] Install over the existing app with data preserved; inspect actual Routine hierarchy, full-day disclosure, all six labels, time editing and AM/PM, Focus continuity, keyboard/back paths and a bounded memory sample. Check a small width and larger text where available. Leave Organice open.
+- [x] Inspect both diffs and obtain one bounded independent Grok 4.7 review. Verify midnight/noon, AM/PM wheel round trips and old inputs.
+- [x] Run `npm test`, `npm run typecheck` and `git diff --check` independently.
+- [x] Build the corrected signed ARM64 APK as versionCode8 under the existing 5 GiB hard memory limit, no build swap, one worker. Code7's navigation redesign was rejected and must not be published. Preserve the published rc.1 tag; replace the unpublished rc.2 draft binary after native acceptance.
+- [x] Install over the existing app with data preserved; inspect actual Routine hierarchy, full-day disclosure, all six labels, time editing and AM/PM, Focus continuity, keyboard/back paths and a bounded memory sample. The phone check used the default text size. Larger-text navigation changes are out of scope because the original dock must stay as it is. Leave Organice open.
 - [ ] Record native results and limits, update GitHub prerelease/Brain, then close the root task. A short run cannot prove the absence of all memory leaks.
 
 ## Review focus
 
-Midnight/noon must not shift by 12 hours. Existing stored times must not shift. Long titles and AM/PM ranges must fit a 360-point screen. Secondary actions and failures must remain reachable after disclosure changes. Current guidance must stay distinct from historical/future plans. The larger-text check must preserve readable navigation and touch targets.
+Midnight/noon must not shift by 12 hours. Existing stored times must not shift. Long titles and AM/PM ranges must fit a 360-point screen. Secondary actions and failures must remain reachable after disclosure changes. Current guidance must stay distinct from historical/future plans. Navigation files and clearance must match the accepted original design exactly.

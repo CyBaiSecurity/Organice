@@ -35,6 +35,8 @@ Run `npm test` and `npm run typecheck` before declaring any task done. `npx expo
 
 ## Navigation & Routing
 
+- Preserve the original navigation design. The user explicitly said: "DONT EVER CHANGE THE NAV DESIGN."
+- Keep the floating pill, raised selected icon, label styling/placement, spacing and existing destinations from `debac675`. The Routine destination stays. Do not redesign the dock while updating screen content.
 - Use **Expo Router** for all navigation. Routes live in `src/app/` — every file there is a screen, `_layout.tsx` files define navigators. Keep non-route code (components, hooks, utils) outside `src/app/`.
 - Import `Link`, `router`, and `useLocalSearchParams` from `expo-router`.
 - Docs: https://docs.expo.dev/router/introduction.md
